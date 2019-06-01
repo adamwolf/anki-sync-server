@@ -7,16 +7,21 @@ repetition algorithm. Anki's main form is a desktop application (for Windows,
 Linux and macOS) which can sync to a web version (AnkiWeb) and mobile
 versions for Android and iOS.
 
+This fork of anki-sync-server is by Adam Wolf. It moves from webob to Flask.
+
+
+History
+-------
 This is a personal Anki server, which you can sync against instead of
-AnkiWeb. It was originally developed by [David Snopek](https://github.com/dsnopek)
+AnkiWeb. 
+
+It was originally developed by [David Snopek](https://github.com/dsnopek)
 to support the flashcard functionality on Bibliobird, a web application for
 language learning.
 
-This version is a fork of [jdoe0/ankisyncd](https://github.com/jdoe0/ankisyncd).
-It supports Python 3 and Anki 2.1.
+It was updated by [jdoe0/ankisyncd](https://github.com/jdoe0/ankisyncd) and [tsudoko/ankisyncd](https://github.com/tsudoko/anki-sync-server).
 
 [Anki]: https://apps.ankiweb.net/
-[dsnopek's Anki Sync Server]: https://github.com/dsnopek/anki-sync-server
 
 <details open><summary>Contents</summary>
 
@@ -54,7 +59,7 @@ Installing
 
 1. Install the dependencies:
 
-        $ pip install webob
+        $ pip install -r requirements.txt
 
 2. Modify ankisyncd.conf according to your needs
 
@@ -64,7 +69,7 @@ Installing
 
 4. Run ankisyncd:
 
-        $ python -m ankisyncd
+        $ FLASK_APP="ankisyncd" flask run
 
 ---
 
@@ -81,7 +86,7 @@ Installing
 Installing (Docker)
 -------------------
 
-Follow [these instructions](https://github.com/kuklinistvan/docker-anki-sync-server#usage).
+Follow [these instructions](https://github.com/kuklinistvan/docker-anki-sync-server#usage).  These instructions have not been updated for the adamwolf fork.
 
 Setting up Anki
 ---------------
@@ -116,6 +121,8 @@ and put it in `~/Anki/addons`.
 ### AnkiDroid
 
 Advanced → Custom sync server
+
+If you use http as the protocol, your password will be sent in the clear.
 
 Unless you have set up a reverse proxy to handle encrypted connections, use
 `http` as the protocol. The port will be either the default, 27701, or

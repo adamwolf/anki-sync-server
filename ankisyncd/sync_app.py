@@ -13,6 +13,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from flask import abort, request
+from flask import Flask, Response
+
 
 import gzip
 import hashlib
@@ -29,10 +32,6 @@ import unicodedata
 import zipfile
 from configparser import ConfigParser
 from sqlite3 import dbapi2 as sqlite
-
-from webob import Response
-from webob.dec import wsgify
-from webob.exc import *
 
 import anki.db
 import anki.sync
@@ -85,7 +84,7 @@ class SyncCollectionHandler(anki.sync.Syncer):
 
     def meta(self, v=None, cv=None):
         if self._old_client(cv):
-            return Response(status=501)  # client needs upgrade
+            abort(501) # client needs upgrade
         if v > SYNC_VER:
             return {"cont": False, "msg": "Your client is using unsupported sync protocol ({}, supported version: {})".format(v, SYNC_VER)}
         if v < 9 and self.col.schedVer() >= 2:
@@ -409,6 +408,11 @@ class SyncApp:
         if not self.base_media_url.endswith('/'):
             self.base_media_url += '/'
 
+        self.posthooks['meta'] = self.aww_postsync
+
+    def aww_postsync(self, collection, session):
+        print("AWW POSTSYNC")
+
     # backwards compat
     @property
     def hook_pre_sync(self):
@@ -492,11 +496,12 @@ class SyncApp:
         # local copy in Anki
         return self.full_sync_manager.download(col, session)
 
-    @wsgify
-    def __call__(self, req):
+    def __call__(self, *args, **kwargs):
         # Get and verify the session
+        print("Got request type: {}".format(request.method))
+        r = request
         try:
-            hkey = req.POST['k']
+            hkey = request.form['k']
         except KeyError:
             hkey = None
 
@@ -504,43 +509,42 @@ class SyncApp:
 
         if session is None:
             try:
-                skey = req.POST['sk']
+                skey = request.form['sk']
                 session = self.session_manager.load_from_skey(skey, self.create_session)
             except KeyError:
                 skey = None
 
         try:
-            compression = int(req.POST['c'])
+            compression = int(request.form['c'])
         except KeyError:
             compression = 0
 
         try:
-            data = req.POST['data'].file.read()
+            data = request.files['data'].read()
             data = self._decode_data(data, compression)
         except KeyError:
             data = {}
 
-        if req.path.startswith(self.base_url):
-            url = req.path[len(self.base_url):]
+        if request.path.startswith(self.base_url):
+            url = request.path[len(self.base_url):]
             if url not in self.valid_urls:
-                raise HTTPNotFound()
+                abort(404)
 
             if url == 'hostKey':
                 result = self.operation_hostKey(data.get("u"), data.get("p"))
                 if result:
                     return json.dumps(result)
                 else:
-                    # TODO: do I have to pass 'null' for the client to receive None?
-                    raise HTTPForbidden('null')
+                    return '', 403
 
             if session is None:
-                raise HTTPForbidden()
+                abort(403)
 
             if url in SyncCollectionHandler.operations + SyncMediaHandler.operations:
                 # 'meta' passes the SYNC_VER but it isn't used in the handler
                 if url == 'meta':
-                    if session.skey == None and 's' in req.POST:
-                        session.skey = req.POST['s']
+                    if session.skey == None and 's' in request.form:
+                        session.skey = request.form['s']
                     if 'v' in data:
                         session.version = data['v']
                     if 'cv' in data:
@@ -584,17 +588,17 @@ class SyncApp:
                 return result
 
             # This was one of our operations but it didn't get handled... Oops!
-            raise HTTPInternalServerError()
+            abort(500)
 
         # media sync
-        elif req.path.startswith(self.base_media_url):
+        elif request.path.startswith(self.base_media_url):
             if session is None:
-                raise HTTPForbidden()
+                abort(403)
 
-            url = req.path[len(self.base_media_url):]
+            url = request.path[len(self.base_media_url):]
 
             if url not in self.valid_urls:
-                raise HTTPNotFound()
+                abort(404)
 
             if url == "begin":
                 data['skey'] = session.skey
@@ -636,39 +640,7 @@ class SyncApp:
         return result
 
 
-def make_app(global_conf, **local_conf):
-    return SyncApp(**local_conf)
 
-def main():
-    logging.basicConfig(level=logging.INFO, format="[%(asctime)s]:%(levelname)s:%(name)s:%(message)s")
-    from wsgiref.simple_server import make_server, WSGIRequestHandler
-    from ankisyncd.thread import shutdown
-    import ankisyncd.config
 
-    class RequestHandler(WSGIRequestHandler):
-        logger = logging.getLogger("ankisyncd.http")
-
-        def log_error(self, format, *args):
-            self.logger.error("%s %s", self.address_string(), format%args)
-
-        def log_message(self, format, *args):
-            self.logger.info("%s %s", self.address_string(), format%args)
-
-    if len(sys.argv) > 1:
-        # backwards compat
-        config = ankisyncd.config.load(sys.argv[1])
-    else:
-        config = ankisyncd.config.load()
-
-    ankiserver = SyncApp(config)
-    httpd = make_server(config['host'], int(config['port']), ankiserver, handler_class=RequestHandler)
-
-    try:
-        logger.info("Serving HTTP on {} port {}...".format(*httpd.server_address))
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        logger.info("Exiting...")
-    finally:
-        shutdown()
-
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    main()
