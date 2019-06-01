@@ -35,7 +35,7 @@ class SimpleUserManager:
         user_dir_path = os.path.join(self.collection_path, username)
         if not os.path.isdir(user_dir_path):
             logger.info("Creating collection directory for user '{}' at {}"
-                         .format(username, user_dir_path))
+                        .format(username, user_dir_path))
             os.makedirs(user_dir_path)
 
 
@@ -157,7 +157,7 @@ class SqliteUserManager(SimpleUserManager):
 
         if db_hash is None:
             logger.info("Authentication failed for nonexistent user {}."
-                         .format(username))
+                        .format(username))
             return False
 
         expected_value = str(db_hash[0])
@@ -189,7 +189,7 @@ class SqliteUserManager(SimpleUserManager):
         conn = self._conn()
         cursor = conn.cursor()
         logger.info("Creating auth db at {}."
-                     .format(self.auth_db_path))
+                    .format(self.auth_db_path))
         cursor.execute(self.fs("""CREATE TABLE IF NOT EXISTS auth
                           (username VARCHAR PRIMARY KEY, hash VARCHAR)"""))
         conn.commit()
@@ -214,4 +214,4 @@ def get_user_manager(config):
         return class_(config)
     else:
         logger.warning("neither auth_db_path nor user_manager set, ankisyncd will accept any password")
-        return  SimpleUserManager()
+        return SimpleUserManager()

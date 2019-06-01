@@ -5,6 +5,7 @@ from sqlite3 import dbapi2 as sqlite
 
 import anki.db
 
+
 class FullSyncManager:
     def upload(self, col, data, session):
         # Verify integrity of the received database file before replacing our
@@ -31,7 +32,6 @@ class FullSyncManager:
             col.load()
 
         return "OK"
-
 
     def download(self, col, session):
         col.close()
