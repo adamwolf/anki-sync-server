@@ -14,23 +14,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from flask import abort, request
-from flask import Flask, Response
+from flask import Response
 
 import gzip
-import hashlib
 import io
 import json
 import logging
 import os
 import random
 import re
-import string
-import sys
 import time
 import unicodedata
 import zipfile
-from configparser import ConfigParser
-from sqlite3 import dbapi2 as sqlite
 
 import anki.db
 import anki.sync
@@ -86,8 +81,8 @@ class SyncCollectionHandler(anki.sync.Syncer):
             abort(501)  # client needs upgrade
         if v > SYNC_VER:
             return {"cont": False,
-                    "msg": "Your client is using unsupported sync protocol ({}, supported version: {})".format(v,
-                                                                                                               SYNC_VER)}
+                    "msg": "Your client is using unsupported sync protocol "
+                           "({}, supported version: {})".format(v, SYNC_VER)}
         if v < 9 and self.col.schedVer() >= 2:
             return {"cont": False, "msg": "Your client doesn't support the v{} scheduler.".format(self.col.schedVer())}
 
@@ -454,7 +449,11 @@ class SyncApp:
         """Generates a new host key to be used by the given username to identify their session.
         This values is random."""
 
-        import hashlib, time, random, string
+        import hashlib
+        import time
+        import random
+        import string
+
         chars = string.ascii_letters + string.digits
         val = ':'.join([username, str(int(time.time())), ''.join(random.choice(chars) for x in range(8))]).encode()
         return hashlib.md5(val).hexdigest()
@@ -503,7 +502,6 @@ class SyncApp:
     def __call__(self, *args, **kwargs):
         # Get and verify the session
         print("Got request type: {}".format(request.method))
-        r = request
         try:
             hkey = request.form['k']
         except KeyError:
@@ -547,7 +545,7 @@ class SyncApp:
             if url in SyncCollectionHandler.operations + SyncMediaHandler.operations:
                 # 'meta' passes the SYNC_VER but it isn't used in the handler
                 if url == 'meta':
-                    if session.skey == None and 's' in request.form:
+                    if session.skey is None and 's' in request.form:
                         session.skey = request.form['s']
                     if 'v' in data:
                         session.version = data['v']
@@ -642,7 +640,3 @@ class SyncApp:
         result = thread.execute(run_func, kw=keyword_args)
 
         return result
-
-
-if __name__ == '__main__':
-    main()

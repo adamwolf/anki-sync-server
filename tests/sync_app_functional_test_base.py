@@ -41,7 +41,7 @@ class SyncAppFunctionalTestBase(unittest.TestCase):
         # Create SyncApp instance using the dev ini file and the temporary
         # paths.
         self.server_app = helpers.server_utils.create_sync_app(self.server_paths,
-                                                           ini_file_path)
+                                                               ini_file_path)
 
         # Wrap the SyncApp object in TestApp instance for testing.
         self.server_test_app = TestApp(self.server_app)

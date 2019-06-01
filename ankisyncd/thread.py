@@ -3,7 +3,8 @@ from ankisyncd.collection import CollectionManager, get_collection_wrapper
 from threading import Thread
 from queue import Queue
 
-import time, logging
+import time
+import logging
 
 
 def short_repr(obj, logger=logging.getLogger(), maxlen=80):
@@ -186,7 +187,10 @@ class ThreadingCollectionManager(CollectionManager):
         while True:
             cur = time.time()
             for path, thread in self.collections.items():
-                if thread.running and thread.wrapper.opened() and thread.qempty() and cur - thread.last_timestamp >= self.monitor_inactivity:
+                if thread.running \
+                        and thread.wrapper.opened() \
+                        and thread.qempty() \
+                        and cur - thread.last_timestamp >= self.monitor_inactivity:
                     self.logger.info("Monitor is closing collection on inactive %s", thread)
                     thread.close()
             time.sleep(self.monitor_frequency)

@@ -133,7 +133,7 @@ def get_session_manager(config):
         module = importlib.import_module(module_name.strip())
         class_ = getattr(module, class_name.strip())
 
-        if not SimpleSessionManager in inspect.getmro(class_):
+        if SimpleSessionManager not in inspect.getmro(class_):
             raise TypeError('''"session_manager" found in the conf file but it doesn''t
                             inherit from SimpleSessionManager''')
         return class_(config)

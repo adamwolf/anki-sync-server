@@ -7,23 +7,24 @@ word in many other SQL dialects.
 """
 import os
 import sys
-path = os.path.realpath(os.path.abspath(os.path.join(__file__, '../')))
-sys.path.insert(0, os.path.dirname(path))
 
 import sqlite3
 import ankisyncd.config
+
+path = os.path.realpath(os.path.abspath(os.path.join(__file__, '../')))
+sys.path.insert(0, os.path.dirname(path))
+
 conf = ankisyncd.config.load()
 
 
 def main():
-
     if os.path.isfile(conf["auth_db_path"]):
         conn = sqlite3.connect(conf["auth_db_path"])
 
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM sqlite_master "
-                             "WHERE sql LIKE '%user VARCHAR PRIMARY KEY%' "
-                             "AND tbl_name = 'auth'")
+                       "WHERE sql LIKE '%user VARCHAR PRIMARY KEY%' "
+                       "AND tbl_name = 'auth'")
         res = cursor.fetchone()
 
         if res is not None:
@@ -45,8 +46,8 @@ def main():
 
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM sqlite_master "
-                             "WHERE sql LIKE '%user VARCHAR%' "
-                             "AND tbl_name = 'session'")
+                       "WHERE sql LIKE '%user VARCHAR%' "
+                       "AND tbl_name = 'session'")
         res = cursor.fetchone()
 
         if res is not None:

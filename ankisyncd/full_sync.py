@@ -5,6 +5,8 @@ from sqlite3 import dbapi2 as sqlite
 
 import anki.db
 
+from ankisyncd.app.errors import BadRequest
+
 
 class FullSyncManager:
     def upload(self, col, data, session):
@@ -17,12 +19,13 @@ class FullSyncManager:
         try:
             with anki.db.DB(temp_db_path) as test_db:
                 if test_db.scalar("pragma integrity_check") != "ok":
-                    raise HTTPBadRequest("Integrity check failed for uploaded "
-                                         "collection database file.")
-        except sqlite.Error as e:
-            raise HTTPBadRequest("Uploaded collection database file is "
-                                 "corrupt.")
-
+                    raise BadRequest("Integrity check failed for uploaded "
+                                     "collection database file.",
+                                     status_code=500)
+        except sqlite.Error:
+            raise BadRequest("Uploaded collection database file is "
+                             "corrupt.",
+                             status_code=500)
         # Overwrite existing db.
         col.close()
         try:
@@ -51,7 +54,7 @@ def get_full_sync_manager(config):
         module = importlib.import_module(module_name.strip())
         class_ = getattr(module, class_name.strip())
 
-        if not FullSyncManager in inspect.getmro(class_):
+        if FullSyncManager not in inspect.getmro(class_):
             raise TypeError('''"full_sync_manager" found in the conf file but it doesn''t
                             inherit from FullSyncManager''')
         return class_(config)

@@ -208,7 +208,7 @@ def get_user_manager(config):
         module = importlib.import_module(module_name.strip())
         class_ = getattr(module, class_name.strip())
 
-        if not SimpleUserManager in inspect.getmro(class_):
+        if SimpleUserManager not in inspect.getmro(class_):
             raise TypeError('''"user_manager" found in the conf file but it doesn''t
                             inherit from SimpleUserManager''')
         return class_(config)

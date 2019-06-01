@@ -8,12 +8,15 @@ from ankisyncd.full_sync import FullSyncManager, get_full_sync_manager
 
 import helpers.server_utils
 
+
 class FakeFullSyncManager(FullSyncManager):
     def __init__(self, config):
         pass
 
+
 class BadFullSyncManager:
     pass
+
 
 class FullSyncManagerFactoryTest(unittest.TestCase):
     def test_get_full_sync_manager(self):
@@ -40,5 +43,4 @@ class FullSyncManagerFactoryTest(unittest.TestCase):
         # Should fail at load time if the class doesn't inherit from FullSyncManager
         config.set("sync_app", "full_sync_manager", 'test_full_sync.BadFullSyncManager')
         with self.assertRaises(TypeError):
-            pm = get_full_sync_manager(config['sync_app'])
-
+            get_full_sync_manager(config['sync_app'])

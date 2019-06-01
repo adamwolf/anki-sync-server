@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 from io import BytesIO
 import json
-import logging
-import logging.config
 import os
-import random
-import shutil
 import tempfile
 import unicodedata
 import zipfile
