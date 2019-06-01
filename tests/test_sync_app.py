@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
-import sqlite3
-import tempfile
 import unittest
 
 from anki.consts import SYNC_VER
 
 from ankisyncd.sync_app import SyncCollectionHandler
-from ankisyncd.sync_app import SyncUserSession
 
 from collection_test_base import CollectionTestBase
 

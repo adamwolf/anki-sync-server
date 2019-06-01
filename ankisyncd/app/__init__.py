@@ -1,5 +1,4 @@
 import logging
-import sys
 
 from flask import Flask
 
@@ -22,5 +21,4 @@ def create_app():
 
     app.add_url_rule('/', 'sync', defaults={'path': ''}, view_func=ankiserver, methods=["GET", "POST"])
     app.add_url_rule('/<path:path>', 'sync', view_func=ankiserver, methods=["GET", "POST"])
-    port = config['port']
     return app

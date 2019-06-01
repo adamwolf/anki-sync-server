@@ -14,24 +14,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from flask import abort, request
-from flask import Flask, Response
-
+from flask import Response
 
 import gzip
-import hashlib
 import io
 import json
 import logging
 import os
 import random
 import re
-import string
-import sys
 import time
 import unicodedata
 import zipfile
-from configparser import ConfigParser
-from sqlite3 import dbapi2 as sqlite
 
 import anki.db
 import anki.sync
@@ -75,18 +69,20 @@ class SyncCollectionHandler(anki.sync.Syncer):
             return version_int < [2, 0, 27]
         elif client == 'ankidroid':
             if version_int == [2, 3]:
-               if note["alpha"]:
-                  return note["alpha"] < 4
+                if note["alpha"]:
+                    return note["alpha"] < 4
             else:
-               return version_int < [2, 2, 3]
+                return version_int < [2, 2, 3]
         else:  # unknown client, assume current version
             return False
 
     def meta(self, v=None, cv=None):
         if self._old_client(cv):
-            abort(501) # client needs upgrade
+            abort(501)  # client needs upgrade
         if v > SYNC_VER:
-            return {"cont": False, "msg": "Your client is using unsupported sync protocol ({}, supported version: {})".format(v, SYNC_VER)}
+            return {"cont": False,
+                    "msg": "Your client is using unsupported sync protocol "
+                           "({}, supported version: {})".format(v, SYNC_VER)}
         if v < 9 and self.col.schedVer() >= 2:
             return {"cont": False, "msg": "Your client doesn't support the v{} scheduler.".format(self.col.schedVer())}
 
@@ -169,6 +165,7 @@ class SyncCollectionHandler(anki.sync.Syncer):
         return [t for t, usn in self.col.tags.allItems()
                 if usn >= self.minUsn]
 
+
 class SyncMediaHandler(anki.sync.MediaSyncer):
     operations = ['begin', 'mediaChanges', 'mediaSanity', 'uploadChanges', 'downloadFiles']
 
@@ -206,7 +203,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
 
     @staticmethod
     def _check_zip_data(zip_file):
-        max_zip_size = 100*1024*1024
+        max_zip_size = 100 * 1024 * 1024
         max_meta_file_size = 100000
 
         meta_file_size = zip_file.getinfo("_meta").file_size
@@ -292,7 +289,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
         self.col.media.db.executemany("UPDATE media " +
                                       "SET csum = NULL " +
                                       " WHERE fname = ?",
-                                      [(f, ) for f in filenames])
+                                      [(f,) for f in filenames])
 
         # Remove the files from our media directory if it is present.
         logger.debug('Removing %d files from media dir.' % len(filenames))
@@ -301,7 +298,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
                 os.remove(os.path.join(self.col.media.dir(), filename))
             except OSError as err:
                 logger.error("Error when removing file '%s' from media dir: "
-                              "%s" % (filename, str(err)))
+                             "%s" % (filename, str(err)))
 
     def downloadFiles(self, files):
         flist = {}
@@ -328,7 +325,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
         fname = csum = None
 
         if lastUsn < usn or lastUsn == 0:
-            for fname,mtime,csum, in self.col.media.db.execute("select fname,mtime,csum from media"):
+            for fname, mtime, csum, in self.col.media.db.execute("select fname,mtime,csum from media"):
                 result.append([fname, usn, csum])
 
         return {'data': result, 'err': ''}
@@ -340,6 +337,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
             result = "FAILED"
 
         return {'data': result, 'err': ''}
+
 
 class SyncUserSession:
     def __init__(self, name, path, collection_manager, setup_new_collection=None):
@@ -383,6 +381,7 @@ class SyncUserSession:
         handler.col = col
         return handler
 
+
 class SyncApp:
     valid_urls = SyncCollectionHandler.operations + SyncMediaHandler.operations + ['hostKey', 'upload', 'download']
 
@@ -390,8 +389,8 @@ class SyncApp:
         from ankisyncd.thread import get_collection_manager
 
         self.data_root = os.path.abspath(config['data_root'])
-        self.base_url  = config['base_url']
-        self.base_media_url  = config['base_media_url']
+        self.base_url = config['base_url']
+        self.base_media_url = config['base_media_url']
         self.setup_new_collection = None
 
         self.prehooks = {}
@@ -450,7 +449,11 @@ class SyncApp:
         """Generates a new host key to be used by the given username to identify their session.
         This values is random."""
 
-        import hashlib, time, random, string
+        import hashlib
+        import time
+        import random
+        import string
+
         chars = string.ascii_letters + string.digits
         val = ':'.join([username, str(int(time.time())), ''.join(random.choice(chars) for x in range(8))]).encode()
         return hashlib.md5(val).hexdigest()
@@ -499,7 +502,6 @@ class SyncApp:
     def __call__(self, *args, **kwargs):
         # Get and verify the session
         print("Got request type: {}".format(request.method))
-        r = request
         try:
             hkey = request.form['k']
         except KeyError:
@@ -543,7 +545,7 @@ class SyncApp:
             if url in SyncCollectionHandler.operations + SyncMediaHandler.operations:
                 # 'meta' passes the SYNC_VER but it isn't used in the handler
                 if url == 'meta':
-                    if session.skey == None and 's' in request.form:
+                    if session.skey is None and 's' in request.form:
                         session.skey = request.form['s']
                     if 'v' in data:
                         session.version = data['v']
@@ -638,9 +640,3 @@ class SyncApp:
         result = thread.execute(run_func, kw=keyword_args)
 
         return result
-
-
-
-
-if __name__ == '__main__':
-    main()

@@ -1,1 +1,1 @@
-from . import db_utils
+from . import db_utils  # noqa: F401

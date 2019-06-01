@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import io
 import logging
 import types
 
@@ -21,9 +20,8 @@ class MockServerConnection:
         r = self.test_app.post(url, params=data.read(), headers=headers, status="*")
         return types.SimpleNamespace(status_code=r.status_int, body=r.body)
 
-
     def streamContent(self, r):
-            return r.body
+        return r.body
 
 
 class MockRemoteServer(RemoteServer):

@@ -10,12 +10,15 @@ from ankisyncd.users import get_user_manager
 
 import helpers.server_utils
 
+
 class FakeUserManager(SimpleUserManager):
     def __init__(self, config):
         pass
 
+
 class BadUserManager:
     pass
+
 
 class UserManagerFactoryTest(unittest.TestCase):
     def test_get_user_manager(self):
@@ -46,7 +49,7 @@ class UserManagerFactoryTest(unittest.TestCase):
         # Should fail at load time if the class doesn't inherit from  SimpleUserManager
         config.set("sync_app", "user_manager", 'test_users.BadUserManager')
         with self.assertRaises(TypeError):
-            um = get_user_manager(config['sync_app'])
+            get_user_manager(config['sync_app'])
 
         # Add the auth_db_path back, it should take precedence over BadUserManager
         config['sync_app'].update(server_paths)
@@ -207,4 +210,3 @@ class SqliteUserManagerTest(unittest.TestCase):
                                                         password))
         self.assertTrue(self.user_manager.authenticate(username,
                                                        new_password))
-

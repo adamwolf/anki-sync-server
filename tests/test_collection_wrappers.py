@@ -9,13 +9,15 @@ from ankisyncd.collection import get_collection_wrapper
 
 import helpers.server_utils
 
+
 class FakeCollectionWrapper(CollectionWrapper):
     def __init__(self, config, path, setup_new_collection=None):
-        self. _CollectionWrapper__col = None
-        pass
+        self._CollectionWrapper__col = None
+
 
 class BadCollectionWrapper:
     pass
+
 
 class CollectionWrapperFactoryTest(unittest.TestCase):
     def test_get_collection_wrapper(self):
@@ -43,5 +45,4 @@ class CollectionWrapperFactoryTest(unittest.TestCase):
         # Should fail at load time if the class doesn't inherit from CollectionWrapper
         config.set("sync_app", "collection_wrapper", 'test_collection_wrappers.BadCollectionWrapper')
         with self.assertRaises(TypeError):
-            pm = get_collection_wrapper(config['sync_app'], path)
-
+            get_collection_wrapper(config['sync_app'], path)

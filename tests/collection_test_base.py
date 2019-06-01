@@ -14,7 +14,7 @@ class CollectionTestBase(unittest.TestCase):
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
-        self.collection_path = os.path.join(self.temp_dir, 'collection.anki2');
+        self.collection_path = os.path.join(self.temp_dir, 'collection.anki2')
         self.collection = anki.storage.Collection(self.collection_path)
         self.mock_app = MagicMock()
 

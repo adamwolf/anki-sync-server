@@ -1,7 +1,7 @@
 import anki
 import anki.storage
 
-import os, errno
+import os
 import logging
 
 logger = logging.getLogger("ankisyncd.collection")
@@ -85,6 +85,7 @@ class CollectionWrapper:
         """Returns True if the collection is open, False otherwise."""
         return self.__col is not None
 
+
 class CollectionManager:
     """Manages a set of CollectionWrapper objects."""
 
@@ -112,17 +113,18 @@ class CollectionManager:
             del self.collections[path]
             col.close()
 
-def get_collection_wrapper(config, path, setup_new_collection = None):
+
+def get_collection_wrapper(config, path, setup_new_collection=None):
     if "collection_wrapper" in config and config["collection_wrapper"]:
         logger.info("Found collection_wrapper in config, using {} for "
-                     "user data persistence".format(config['collection_wrapper']))
+                    "user data persistence".format(config['collection_wrapper']))
         import importlib
         import inspect
         module_name, class_name = config['collection_wrapper'].rsplit('.', 1)
         module = importlib.import_module(module_name.strip())
         class_ = getattr(module, class_name.strip())
 
-        if not CollectionWrapper in inspect.getmro(class_):
+        if CollectionWrapper not in inspect.getmro(class_):
             raise TypeError('''"collection_wrapper" found in the conf file but it doesn''t
                             inherit from CollectionWrapper''')
         return class_(config, path, setup_new_collection)

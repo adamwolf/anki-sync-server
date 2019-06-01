@@ -14,12 +14,15 @@ from ankisyncd.sync_app import SyncUserSession
 
 import helpers.server_utils
 
+
 class FakeSessionManager(SimpleSessionManager):
     def __init__(self, config):
         pass
 
+
 class BadSessionManager:
     pass
+
 
 class SessionManagerFactoryTest(unittest.TestCase):
     def test_get_session_manager(self):
@@ -50,7 +53,7 @@ class SessionManagerFactoryTest(unittest.TestCase):
         # Should fail at load time if the class doesn't inherit from  SimpleSessionManager
         config.set("sync_app", "session_manager", 'test_sessions.BadSessionManager')
         with self.assertRaises(TypeError):
-            sm = get_session_manager(config['sync_app'])
+            get_session_manager(config['sync_app'])
 
         # Add the session_db_path back, it should take precedence over BadSessionManager
         config['sync_app'].update(server_paths)
@@ -118,6 +121,3 @@ class SqliteSessionManagerTest(SimpleSessionManagerTest):
 
         self.assertEqual(res[0], self.test_session.name)
         self.assertEqual(res[1], self.test_session.path)
-
-
-
