@@ -1,19 +1,22 @@
 ankisyncd
 =========
 
+
+[![CircleCI](https://circleci.com/gh/adamwolf/anki-sync-server.svg?style=svg)](https://circleci.com/gh/adamwolf/anki-sync-server)
+
 [Anki][] is a powerful open source flashcard application, which helps you
 quickly and easily memorize facts over the long term utilizing a spaced
 repetition algorithm. Anki's main form is a desktop application (for Windows,
 Linux and macOS) which can sync to a web version (AnkiWeb) and mobile
 versions for Android and iOS.
 
+This is a personal Anki server, which you can sync against instead of AnkiWeb.
+
 This fork of anki-sync-server is by Adam Wolf. It moves from webob to Flask.
 
 
 History
 -------
-This is a personal Anki server, which you can sync against instead of
-AnkiWeb. 
 
 It was originally developed by [David Snopek](https://github.com/dsnopek)
 to support the flashcard functionality on Bibliobird, a web application for
@@ -82,6 +85,10 @@ Installing
 
 [commit `95ccbfdd3679`]: https://github.com/dae/anki/commit/95ccbfdd3679dd46f22847c539c7fddb8fa904ea
 [commit `a389b8b4a0e2`]: https://github.com/dae/anki/commit/a389b8b4a0e209023c4533a7ee335096a704079c
+
+PyCharm
+-------
+You may need to add the anki-bundled/ directory to your PYTHONPATH.  This can be done in pycharm under Preferences, Interpreter, Configure, Show Paths, Add.
 
 Installing (Docker)
 -------------------

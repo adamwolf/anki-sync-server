@@ -5,11 +5,11 @@ from sqlite3 import dbapi2 as sqlite
 
 import anki.db
 
-from ankisyncd.app.errors import BadRequest
-
 
 class FullSyncManager:
     def upload(self, col, data, session):
+        from ankisyncd.app.errors import BadRequest  # TODO MOVE TO TOP
+
         # Verify integrity of the received database file before replacing our
         # existing db.
         temp_db_path = session.get_collection_path() + ".tmp"

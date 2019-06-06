@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sqlite3
-import subprocess
 
 
 def from_sql(path, sql):
@@ -43,7 +42,7 @@ def to_sql(database):
 
 def diff(left_db_path, right_db_path):
     """
-    Uses the sqldiff cli tool to compare two sqlite files for equality.
+    Compare two sqlite files for equality.
     Returns True if the databases differ, False if they don't.
 
     :param left_db_path: path to the left db file
@@ -51,20 +50,12 @@ def diff(left_db_path, right_db_path):
     :return: True if the specified databases differ, False else
     """
 
-    command = ["sqldiff", left_db_path, right_db_path]
+    left = to_sql(left_db_path)
+    right = to_sql(right_db_path)
 
-    child_process = subprocess.Popen(command,
-                                     shell=False,
-                                     stdout=subprocess.PIPE)
-    stdout, stderr = child_process.communicate()
-    exit_code = child_process.returncode
+    # import difflib
+    # d = difflib.Differ()
+    # diff = d.compare(left.split("\n"), right.split("\n"))
+    # print('\n'.join(diff))
 
-    if exit_code != 0 or stderr is not None:
-        raise RuntimeError("Command {} encountered an error, exit "
-                           "code: {}, stderr: {}"
-                           .format(" ".join(command),
-                                   exit_code,
-                                   stderr))
-
-    # Any output from sqldiff means the databases differ.
-        return stdout != ""
+    return left != right

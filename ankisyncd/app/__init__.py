@@ -1,11 +1,10 @@
 import logging
 
-from flask import Flask
 
-from ankisyncd.sync_app import SyncApp
+def create_app(syncapp=None):
+    from ankisyncd.sync_app import SyncApp
+    from flask import Flask
 
-
-def create_app():
     logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s]:%(levelname)s:%(name)s:%(message)s")
     import ankisyncd.config
 
@@ -13,9 +12,11 @@ def create_app():
     #    config = ankisyncd.config.load(sys.argv[1])
     # else:
 
-    config = ankisyncd.config.load()
-
-    ankiserver = SyncApp(config)
+    if syncapp is None:
+        config = ankisyncd.config.load()
+        ankiserver = SyncApp(config)
+    else:
+        ankiserver = syncapp
 
     app = Flask("ankisyncd")
 

@@ -95,7 +95,7 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         the identical file in their media directories and media databases.
         """
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.server_app,
+        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
                                                           self.hkey,
                                                           'media')
 
@@ -127,7 +127,7 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         """
         join = os.path.join
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.server_app,
+        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
                                                           self.hkey,
                                                           'media')
 
@@ -166,7 +166,7 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         join = os.path.join
         isfile = os.path.isfile
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.server_app,
+        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
                                                           self.hkey,
                                                           'media')
 
@@ -213,7 +213,7 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         join = os.path.join
         isfile = os.path.isfile
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.server_app,
+        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
                                                           self.hkey,
                                                           'media')
 
@@ -259,7 +259,7 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         join = os.path.join
         isfile = os.path.isfile
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.server_app,
+        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
                                                           self.hkey,
                                                           'media')
 
@@ -324,34 +324,31 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         # Create temporary db file with expected results.
         chksum = client.col.media._checksum(support_file)
         sql = ("""
-            CREATE TABLE meta (dirMod int, lastUsn int);
+CREATE TABLE meta (dirMod int, lastUsn int);
 
-            INSERT INTO `meta` (dirMod, lastUsn) VALUES (123456789,1);
+INSERT INTO `meta` (dirMod, lastUsn) VALUES (123456789,1);
 
-            CREATE TABLE media (
-              fname text not null primary key,
-              csum text,
-              mtime int not null,
-               dirty int not null
-            );
+CREATE TABLE media (
+ fname text not null primary key,
+ csum text,           -- null indicates deleted file
+ mtime int not null,  -- zero if deleted
+ dirty int not null
+);
 
-            INSERT INTO `media` (fname, csum, mtime, dirty) VALUES (
-               'blue.jpg',
-               '%s',
-               1441483037,
-               0
-            );
+INSERT INTO `media` (fname, csum, mtime, dirty) VALUES (
+ 'blue.jpg',
+ '%s',
+ 1441483037,
+ 0
+);
 
-            CREATE INDEX idx_media_dirty on media (dirty);
-        """ % chksum)
+CREATE INDEX idx_media_dirty on media (dirty);
+""" % chksum)
 
         _, dbpath = tempfile.mkstemp(suffix=".anki2")
         helpers.db_utils.from_sql(dbpath, sql)
 
         # Except for timestamps, the client's db after sync should be identical
         # to the expected data.
-        self.assertFalse(self.media_dbs_differ(
-            client.col.media.db._path,
-            dbpath
-        ))
+        assert not self.media_dbs_differ(client.col.media.db._path, dbpath)
         os.unlink(dbpath)

@@ -4,6 +4,8 @@ import unittest
 from webtest import TestApp
 
 import helpers.server_utils
+
+from ankisyncd.app import create_app
 from ankisyncd.users import SqliteUserManager
 from helpers.collection_utils import CollectionUtils
 from helpers.mock_servers import MockRemoteServer
@@ -40,11 +42,13 @@ class SyncAppFunctionalTestBase(unittest.TestCase):
 
         # Create SyncApp instance using the dev ini file and the temporary
         # paths.
-        self.server_app = helpers.server_utils.create_sync_app(self.server_paths,
-                                                               ini_file_path)
+        self.sync_app = helpers.server_utils.create_sync_app(self.server_paths,
+                                                             ini_file_path)
+
+        self.flask_app = create_app(self.sync_app)
 
         # Wrap the SyncApp object in TestApp instance for testing.
-        self.server_test_app = TestApp(self.server_app)
+        self.server_test_app = TestApp(self.flask_app)
 
         # MockRemoteServer instance needed for testing normal collection
         # syncing and for retrieving hkey for other tests.
@@ -56,8 +60,9 @@ class SyncAppFunctionalTestBase(unittest.TestCase):
         self.user_manager = None
 
         # Shut down server.
-        self.server_app.collection_manager.shutdown()
-        self.server_app = None
+        self.sync_app.collection_manager.shutdown()
+        self.flask_app = None
+        self.sync_app = None
 
         self.client_server_connection = None
 
