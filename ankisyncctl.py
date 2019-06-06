@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import sys
 import getpass
+import sys
 
 import ankisyncd.config
 from ankisyncd.users import get_user_manager
@@ -30,8 +30,9 @@ def deluser(username):
     try:
         user_manager.del_user(username)
     except ValueError as error:
-        print("Could not delete"
-              " user {}: {}".format(username, error), file=sys.stderr)
+        print(
+            "Could not delete" " user {}: {}".format(username, error), file=sys.stderr
+        )
 
 
 def lsuser():
@@ -41,8 +42,7 @@ def lsuser():
         for username in users:
             print(username)
     except ValueError as error:
-        print("Could not "
-              "list users: {}".format(error), file=sys.stderr)
+        print("Could not " "list users: {}".format(error), file=sys.stderr)
 
 
 def passwd(username):
@@ -56,19 +56,16 @@ def passwd(username):
     try:
         user_manager.set_password_for_user(username, password)
     except ValueError as error:
-        print("Could not set password for "
-              "user {}: {}".format(username, error), file=sys.stderr)
+        print(
+            "Could not set password for " "user {}: {}".format(username, error),
+            file=sys.stderr,
+        )
 
 
 def main():
     argc = len(sys.argv)
 
-    cmds = {
-        "adduser": adduser,
-        "deluser": deluser,
-        "lsuser": lsuser,
-        "passwd": passwd,
-    }
+    cmds = {"adduser": adduser, "deluser": deluser, "lsuser": lsuser, "passwd": passwd}
 
     if argc < 2:
         usage()

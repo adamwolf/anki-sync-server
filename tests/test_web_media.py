@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-import tempfile
 import filecmp
-import sqlite3
 import os
 import shutil
+import sqlite3
+import tempfile
 
+import helpers.db_utils
 import helpers.file_utils
 import helpers.server_utils
-import helpers.db_utils
 from anki.sync import MediaSyncer
 from helpers.mock_servers import MockRemoteMediaServer
-from helpers.monkey_patches import monkeypatch_mediamanager, unpatch_mediamanager
+from helpers.monkey_patches import (monkeypatch_mediamanager,
+                                    unpatch_mediamanager)
 from sync_app_functional_test_base import SyncAppFunctionalTestBase
 
 
@@ -22,9 +23,9 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         self.tempdir = tempfile.mkdtemp(prefix=self.__class__.__name__)
         self.hkey = self.mock_remote_server.hostKey("testuser", "testpassword")
         client_collection = self.colutils.create_empty_col()
-        self.client_syncer = self.create_client_syncer(client_collection,
-                                                       self.hkey,
-                                                       self.server_test_app)
+        self.client_syncer = self.create_client_syncer(
+            client_collection, self.hkey, self.server_test_app
+        )
 
     def tearDown(self):
         self.hkey = None
@@ -34,11 +35,10 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
 
     @staticmethod
     def create_client_syncer(collection, hkey, server_test_app):
-        mock_remote_server = MockRemoteMediaServer(col=collection,
-                                                   hkey=hkey,
-                                                   server_test_app=server_test_app)
-        media_syncer = MediaSyncer(col=collection,
-                                   server=mock_remote_server)
+        mock_remote_server = MockRemoteMediaServer(
+            col=collection, hkey=hkey, server_test_app=server_test_app
+        )
+        media_syncer = MediaSyncer(col=collection, server=mock_remote_server)
         return media_syncer
 
     def media_dbs_differ(self, left_db_path, right_db_path, compare_timestamps=False):
@@ -73,11 +73,15 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
             for dbPath in [left_db_path, right_db_path]:
                 connection = sqlite3.connect(dbPath)
 
-                connection.execute("""UPDATE media SET mtime=0
-                                      WHERE mtime IS NOT NULL""")
+                connection.execute(
+                    """UPDATE media SET mtime=0
+                                      WHERE mtime IS NOT NULL"""
+                )
 
-                connection.execute("""UPDATE meta SET dirMod=0
-                                      WHERE rowid=1""")
+                connection.execute(
+                    """UPDATE meta SET dirMod=0
+                                      WHERE rowid=1"""
+                )
                 connection.commit()
                 connection.close()
 
@@ -86,8 +90,8 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
     def test_sync_empty_media_dbs(self):
         # With both the client and the server having no media to sync,
         # syncing should change nothing.
-        self.assertEqual('noChanges', self.client_syncer.sync())
-        self.assertEqual('noChanges', self.client_syncer.sync())
+        self.assertEqual("noChanges", self.client_syncer.sync())
+        self.assertEqual("noChanges", self.client_syncer.sync())
 
     def test_sync_file_from_server(self):
         """
@@ -95,30 +99,32 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         the identical file in their media directories and media databases.
         """
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
-                                                          self.hkey,
-                                                          'media')
+        server = helpers.server_utils.get_syncer_for_hkey(
+            self.sync_app, self.hkey, "media"
+        )
 
         # Create a test file.
         temp_file_path = helpers.file_utils.create_named_file("foo.jpg", "hello")
 
         # Add the test file to the server's collection.
-        helpers.server_utils.add_files_to_mediasyncer(server,
-                                                      [temp_file_path],
-                                                      update_db=True,
-                                                      bump_last_usn=True)
+        helpers.server_utils.add_files_to_mediasyncer(
+            server, [temp_file_path], update_db=True, bump_last_usn=True
+        )
 
         # Syncing should work.
-        self.assertEqual(client.sync(), 'OK')
+        self.assertEqual(client.sync(), "OK")
 
         # The test file should be present in the server's and in the client's
         # media directory.
         self.assertTrue(
-            filecmp.cmp(os.path.join(client.col.media.dir(), "foo.jpg"),
-                        os.path.join(server.col.media.dir(), "foo.jpg")))
+            filecmp.cmp(
+                os.path.join(client.col.media.dir(), "foo.jpg"),
+                os.path.join(server.col.media.dir(), "foo.jpg"),
+            )
+        )
 
         # Further syncing should do nothing.
-        self.assertEqual(client.sync(), 'noChanges')
+        self.assertEqual(client.sync(), "noChanges")
 
     def test_sync_file_from_client(self):
         """
@@ -127,29 +133,32 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         """
         join = os.path.join
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
-                                                          self.hkey,
-                                                          'media')
+        server = helpers.server_utils.get_syncer_for_hkey(
+            self.sync_app, self.hkey, "media"
+        )
 
         # Create a test file.
         temp_file_path = helpers.file_utils.create_named_file("foo.jpg", "hello")
 
         # Add the test file to the client's media collection.
-        helpers.server_utils.add_files_to_mediasyncer(client,
-                                                      [temp_file_path],
-                                                      update_db=True,
-                                                      bump_last_usn=False)
+        helpers.server_utils.add_files_to_mediasyncer(
+            client, [temp_file_path], update_db=True, bump_last_usn=False
+        )
 
         # Syncing should work.
-        self.assertEqual(client.sync(), 'OK')
+        self.assertEqual(client.sync(), "OK")
 
         # The same file should be present in both the client's and the server's
         # media directory.
-        self.assertTrue(filecmp.cmp(join(client.col.media.dir(), "foo.jpg"),
-                                    join(server.col.media.dir(), "foo.jpg")))
+        self.assertTrue(
+            filecmp.cmp(
+                join(client.col.media.dir(), "foo.jpg"),
+                join(server.col.media.dir(), "foo.jpg"),
+            )
+        )
 
         # Further syncing should do nothing.
-        self.assertEqual(client.sync(), 'noChanges')
+        self.assertEqual(client.sync(), "noChanges")
 
         # Except for timestamps, the media databases of client and server
         # should be identical.
@@ -166,42 +175,45 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         join = os.path.join
         isfile = os.path.isfile
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
-                                                          self.hkey,
-                                                          'media')
+        server = helpers.server_utils.get_syncer_for_hkey(
+            self.sync_app, self.hkey, "media"
+        )
 
         # Create two files and add one to the server and one to the client.
         file_for_client = helpers.file_utils.create_named_file("foo.jpg", "hello")
         file_for_server = helpers.file_utils.create_named_file("bar.jpg", "goodbye")
 
-        helpers.server_utils.add_files_to_mediasyncer(client,
-                                                      [file_for_client],
-                                                      update_db=True)
-        helpers.server_utils.add_files_to_mediasyncer(server,
-                                                      [file_for_server],
-                                                      update_db=True,
-                                                      bump_last_usn=True)
+        helpers.server_utils.add_files_to_mediasyncer(
+            client, [file_for_client], update_db=True
+        )
+        helpers.server_utils.add_files_to_mediasyncer(
+            server, [file_for_server], update_db=True, bump_last_usn=True
+        )
 
         # Syncing should work.
-        self.assertEqual(client.sync(), 'OK')
+        self.assertEqual(client.sync(), "OK")
 
         # Both files should be present in the client's and in the server's
         # media directories.
         self.assertTrue(isfile(join(client.col.media.dir(), "foo.jpg")))
         self.assertTrue(isfile(join(server.col.media.dir(), "foo.jpg")))
-        self.assertTrue(filecmp.cmp(
-            join(client.col.media.dir(), "foo.jpg"),
-            join(server.col.media.dir(), "foo.jpg"))
+        self.assertTrue(
+            filecmp.cmp(
+                join(client.col.media.dir(), "foo.jpg"),
+                join(server.col.media.dir(), "foo.jpg"),
+            )
         )
         self.assertTrue(isfile(join(client.col.media.dir(), "bar.jpg")))
         self.assertTrue(isfile(join(server.col.media.dir(), "bar.jpg")))
-        self.assertTrue(filecmp.cmp(
-            join(client.col.media.dir(), "bar.jpg"),
-            join(server.col.media.dir(), "bar.jpg"))
+        self.assertTrue(
+            filecmp.cmp(
+                join(client.col.media.dir(), "bar.jpg"),
+                join(server.col.media.dir(), "bar.jpg"),
+            )
         )
 
         # Further syncing should change nothing.
-        self.assertEqual(client.sync(), 'noChanges')
+        self.assertEqual(client.sync(), "noChanges")
 
     def test_sync_different_contents(self):
         """
@@ -213,40 +225,43 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         join = os.path.join
         isfile = os.path.isfile
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
-                                                          self.hkey,
-                                                          'media')
+        server = helpers.server_utils.get_syncer_for_hkey(
+            self.sync_app, self.hkey, "media"
+        )
 
         # Create two files with identical names but different contents and
         # checksums. Add one to the server and one to the client.
         file_for_client = helpers.file_utils.create_named_file("foo.jpg", "hello")
         file_for_server = helpers.file_utils.create_named_file("foo.jpg", "goodbye")
 
-        helpers.server_utils.add_files_to_mediasyncer(client,
-                                                      [file_for_client],
-                                                      update_db=True)
-        helpers.server_utils.add_files_to_mediasyncer(server,
-                                                      [file_for_server],
-                                                      update_db=True,
-                                                      bump_last_usn=True)
+        helpers.server_utils.add_files_to_mediasyncer(
+            client, [file_for_client], update_db=True
+        )
+        helpers.server_utils.add_files_to_mediasyncer(
+            server, [file_for_server], update_db=True, bump_last_usn=True
+        )
 
         # Syncing should work.
-        self.assertEqual(client.sync(), 'OK')
+        self.assertEqual(client.sync(), "OK")
 
         # A version of the file should be present in both the client's and the
         # server's media directory.
         self.assertTrue(isfile(join(client.col.media.dir(), "foo.jpg")))
-        self.assertEqual(os.listdir(client.col.media.dir()), ['foo.jpg'])
+        self.assertEqual(os.listdir(client.col.media.dir()), ["foo.jpg"])
         self.assertTrue(isfile(join(server.col.media.dir(), "foo.jpg")))
-        self.assertEqual(os.listdir(server.col.media.dir()), ['foo.jpg'])
-        self.assertEqual(client.sync(), 'noChanges')
+        self.assertEqual(os.listdir(server.col.media.dir()), ["foo.jpg"])
+        self.assertEqual(client.sync(), "noChanges")
 
         # Both files should have the contents of the server's version.
         _checksum = client.col.media._checksum
-        self.assertEqual(_checksum(join(client.col.media.dir(), "foo.jpg")),
-                         _checksum(file_for_server))
-        self.assertEqual(_checksum(join(server.col.media.dir(), "foo.jpg")),
-                         _checksum(file_for_server))
+        self.assertEqual(
+            _checksum(join(client.col.media.dir(), "foo.jpg")),
+            _checksum(file_for_server),
+        )
+        self.assertEqual(
+            _checksum(join(server.col.media.dir(), "foo.jpg")),
+            _checksum(file_for_server),
+        )
 
     def test_sync_add_and_delete_on_client(self):
         """
@@ -259,29 +274,32 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         join = os.path.join
         isfile = os.path.isfile
         client = self.client_syncer
-        server = helpers.server_utils.get_syncer_for_hkey(self.sync_app,
-                                                          self.hkey,
-                                                          'media')
+        server = helpers.server_utils.get_syncer_for_hkey(
+            self.sync_app, self.hkey, "media"
+        )
 
         # Create a test file.
         temp_file_path = helpers.file_utils.create_named_file("foo.jpg", "hello")
 
         # Add the test file to client's media collection.
-        helpers.server_utils.add_files_to_mediasyncer(client,
-                                                      [temp_file_path],
-                                                      update_db=True,
-                                                      bump_last_usn=False)
+        helpers.server_utils.add_files_to_mediasyncer(
+            client, [temp_file_path], update_db=True, bump_last_usn=False
+        )
 
         # Syncing client should work.
-        self.assertEqual(client.sync(), 'OK')
+        self.assertEqual(client.sync(), "OK")
 
         # The same file should be present in both client's and the server's
         # media directory.
-        self.assertTrue(filecmp.cmp(join(client.col.media.dir(), "foo.jpg"),
-                                    join(server.col.media.dir(), "foo.jpg")))
+        self.assertTrue(
+            filecmp.cmp(
+                join(client.col.media.dir(), "foo.jpg"),
+                join(server.col.media.dir(), "foo.jpg"),
+            )
+        )
 
         # Syncing client again should do nothing.
-        self.assertEqual(client.sync(), 'noChanges')
+        self.assertEqual(client.sync(), "noChanges")
 
         # Remove files from client's media dir and write changes to its db.
         os.remove(join(client.col.media.dir(), "foo.jpg"))
@@ -292,14 +310,14 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         self.assertFalse(isfile(join(client.col.media.dir(), "foo.jpg")))
 
         # Syncing client again should work.
-        self.assertEqual(client.sync(), 'OK')
+        self.assertEqual(client.sync(), "OK")
 
         # server should have picked up the removal from client.
         self.assertEqual(server.col.media.syncInfo("foo.jpg"), (None, 0))
         self.assertFalse(isfile(join(server.col.media.dir(), "foo.jpg")))
 
         # Syncing client again should do nothing.
-        self.assertEqual(client.sync(), 'noChanges')
+        self.assertEqual(client.sync(), "noChanges")
 
     def test_sync_compare_database_to_expected(self):
         """
@@ -312,18 +330,19 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         # Add a test image file to the client's media collection but don't
         # update its media db since the desktop client updates that, using
         # findChanges(), only during syncs.
-        support_file = helpers.file_utils.get_asset_path('blue.jpg')
+        support_file = helpers.file_utils.get_asset_path("blue.jpg")
         self.assertTrue(os.path.isfile(support_file))
-        helpers.server_utils.add_files_to_mediasyncer(client,
-                                                      [support_file],
-                                                      update_db=False)
+        helpers.server_utils.add_files_to_mediasyncer(
+            client, [support_file], update_db=False
+        )
 
         # Syncing should work.
         self.assertEqual(client.sync(), "OK")
 
         # Create temporary db file with expected results.
         chksum = client.col.media._checksum(support_file)
-        sql = ("""
+        sql = (
+            """
 CREATE TABLE meta (dirMod int, lastUsn int);
 
 INSERT INTO `meta` (dirMod, lastUsn) VALUES (123456789,1);
@@ -343,7 +362,9 @@ INSERT INTO `media` (fname, csum, mtime, dirty) VALUES (
 );
 
 CREATE INDEX idx_media_dirty on media (dirty);
-""" % chksum)
+"""
+            % chksum
+        )
 
         _, dbpath = tempfile.mkstemp(suffix=".anki2")
         helpers.db_utils.from_sql(dbpath, sql)

@@ -13,9 +13,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from flask import abort, request
-from flask import Response
-
 import gzip
 import io
 import json
@@ -30,18 +27,28 @@ import zipfile
 import anki.db
 import anki.sync
 import anki.utils
-from anki.consts import SYNC_VER, SYNC_ZIP_SIZE, SYNC_ZIP_COUNT
-from anki.consts import REM_CARD, REM_NOTE
+from anki.consts import (REM_CARD, REM_NOTE, SYNC_VER, SYNC_ZIP_COUNT,
+                         SYNC_ZIP_SIZE)
+from flask import Response, abort, request
 
-from ankisyncd.users import get_user_manager
-from ankisyncd.sessions import get_session_manager
 from ankisyncd.full_sync import get_full_sync_manager
+from ankisyncd.sessions import get_session_manager
+from ankisyncd.users import get_user_manager
 
 logger = logging.getLogger("ankisyncd")
 
 
 class SyncCollectionHandler(anki.sync.Syncer):
-    operations = ['meta', 'applyChanges', 'start', 'applyGraves', 'chunk', 'applyChunk', 'sanityCheck2', 'finish']
+    operations = [
+        "meta",
+        "applyChanges",
+        "start",
+        "applyGraves",
+        "chunk",
+        "applyChunk",
+        "sanityCheck2",
+        "finish",
+    ]
 
     def __init__(self, col):
         # So that 'server' (the 3rd argument) can't get set
@@ -53,7 +60,7 @@ class SyncCollectionHandler(anki.sync.Syncer):
             return False
 
         note = {"alpha": 0, "beta": 0, "rc": 0}
-        client, version, platform = cv.split(',')
+        client, version, platform = cv.split(",")
 
         for name in note.keys():
             if name in version:
@@ -62,12 +69,12 @@ class SyncCollectionHandler(anki.sync.Syncer):
                 note[name] = int(vs[-1])
 
         # convert the version string, ignoring non-numeric suffixes like in beta versions of Anki
-        version_nosuffix = re.sub(r'[^0-9.].*$', '', version)
-        version_int = [int(x) for x in version_nosuffix.split('.')]
+        version_nosuffix = re.sub(r"[^0-9.].*$", "", version)
+        version_int = [int(x) for x in version_nosuffix.split(".")]
 
-        if client == 'ankidesktop':
+        if client == "ankidesktop":
             return version_int < [2, 0, 27]
-        elif client == 'ankidroid':
+        elif client == "ankidroid":
             if version_int == [2, 3]:
                 if note["alpha"]:
                     return note["alpha"] < 4
@@ -80,24 +87,31 @@ class SyncCollectionHandler(anki.sync.Syncer):
         if self._old_client(cv):
             abort(501)  # client needs upgrade
         if v > SYNC_VER:
-            return {"cont": False,
-                    "msg": "Your client is using unsupported sync protocol "
-                           "({}, supported version: {})".format(v, SYNC_VER)}
+            return {
+                "cont": False,
+                "msg": "Your client is using unsupported sync protocol "
+                "({}, supported version: {})".format(v, SYNC_VER),
+            }
         if v < 9 and self.col.schedVer() >= 2:
-            return {"cont": False, "msg": "Your client doesn't support the v{} scheduler.".format(self.col.schedVer())}
+            return {
+                "cont": False,
+                "msg": "Your client doesn't support the v{} scheduler.".format(
+                    self.col.schedVer()
+                ),
+            }
 
         # Make sure the media database is open!
         if self.col.media.db is None:
             self.col.media.connect()
 
         return {
-            'scm': self.col.scm,
-            'ts': anki.utils.intTime(),
-            'mod': self.col.mod,
-            'usn': self.col._usn,
-            'musn': self.col.media.lastUsn(),
-            'msg': '',
-            'cont': True,
+            "scm": self.col.scm,
+            "ts": anki.utils.intTime(),
+            "mod": self.col.mod,
+            "usn": self.col._usn,
+            "musn": self.col.media.lastUsn(),
+            "msg": "",
+            "cont": True,
         }
 
     def usnLim(self):
@@ -140,7 +154,8 @@ class SyncCollectionHandler(anki.sync.Syncer):
         decks = []
 
         curs = self.col.db.execute(
-            "select oid, type from graves where usn >= ?", self.minUsn)
+            "select oid, type from graves where usn >= ?", self.minUsn
+        )
 
         for oid, type in curs:
             if type == REM_CARD:
@@ -153,33 +168,32 @@ class SyncCollectionHandler(anki.sync.Syncer):
         return dict(cards=cards, notes=notes, decks=decks)
 
     def getModels(self):
-        return [m for m in self.col.models.all() if m['usn'] >= self.minUsn]
+        return [m for m in self.col.models.all() if m["usn"] >= self.minUsn]
 
     def getDecks(self):
         return [
-            [g for g in self.col.decks.all() if g['usn'] >= self.minUsn],
-            [g for g in self.col.decks.allConf() if g['usn'] >= self.minUsn]
+            [g for g in self.col.decks.all() if g["usn"] >= self.minUsn],
+            [g for g in self.col.decks.allConf() if g["usn"] >= self.minUsn],
         ]
 
     def getTags(self):
-        return [t for t, usn in self.col.tags.allItems()
-                if usn >= self.minUsn]
+        return [t for t, usn in self.col.tags.allItems() if usn >= self.minUsn]
 
 
 class SyncMediaHandler(anki.sync.MediaSyncer):
-    operations = ['begin', 'mediaChanges', 'mediaSanity', 'uploadChanges', 'downloadFiles']
+    operations = [
+        "begin",
+        "mediaChanges",
+        "mediaSanity",
+        "uploadChanges",
+        "downloadFiles",
+    ]
 
     def __init__(self, col):
         anki.sync.MediaSyncer.__init__(self, col)
 
     def begin(self, skey):
-        return {
-            'data': {
-                'sk': skey,
-                'usn': self.col.media.lastUsn(),
-            },
-            'err': '',
-        }
+        return {"data": {"sk": skey, "usn": self.col.media.lastUsn()}, "err": ""}
 
     def uploadChanges(self, data):
         """
@@ -196,10 +210,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
         our_last_usn = self.col.media.lastUsn()
         self.col.media.setLastUsn(our_last_usn + processed_count)
 
-        return {
-            'data': [processed_count, self.col.media.lastUsn()],
-            'err': '',
-        }
+        return {"data": [processed_count, self.col.media.lastUsn()], "err": ""}
 
     @staticmethod
     def _check_zip_data(zip_file):
@@ -210,11 +221,14 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
         sum_file_sizes = sum(info.file_size for info in zip_file.infolist())
 
         if meta_file_size > max_meta_file_size:
-            raise ValueError("Zip file's metadata file is larger than %s "
-                             "Bytes." % max_meta_file_size)
+            raise ValueError(
+                "Zip file's metadata file is larger than %s "
+                "Bytes." % max_meta_file_size
+            )
         elif sum_file_sizes > max_zip_size:
-            raise ValueError("Zip file contents are larger than %s Bytes." %
-                             max_zip_size)
+            raise ValueError(
+                "Zip file contents are larger than %s Bytes." % max_zip_size
+            )
 
     def _adopt_media_changes_from_zip(self, zip_file):
         """
@@ -228,7 +242,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
         # Remove media files that were removed on the client.
         media_to_remove = []
         for normname, ordinal in meta:
-            if ordinal == '':
+            if ordinal == "":
                 media_to_remove.append(self._normalize_filename(normname))
 
         # Add media files that were added on the client.
@@ -243,7 +257,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
             file_path = os.path.join(self.col.media.dir(), filename)
 
             # Save file to media directory.
-            with open(file_path, 'wb') as f:
+            with open(file_path, "wb") as f:
                 f.write(file_data)
             mtime = self.col.media._mtime(file_path)
 
@@ -260,7 +274,8 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
 
         if media_to_add:
             self.col.media.db.executemany(
-                "INSERT OR REPLACE INTO media VALUES (?,?,?,?)", media_to_add)
+                "INSERT OR REPLACE INTO media VALUES (?,?,?,?)", media_to_add
+            )
 
         return processed_count
 
@@ -286,19 +301,21 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
         """
 
         # Mark the files as deleted in our db.
-        self.col.media.db.executemany("UPDATE media " +
-                                      "SET csum = NULL " +
-                                      " WHERE fname = ?",
-                                      [(f,) for f in filenames])
+        self.col.media.db.executemany(
+            "UPDATE media " + "SET csum = NULL " + " WHERE fname = ?",
+            [(f,) for f in filenames],
+        )
 
         # Remove the files from our media directory if it is present.
-        logger.debug('Removing %d files from media dir.' % len(filenames))
+        logger.debug("Removing %d files from media dir." % len(filenames))
         for filename in filenames:
             try:
                 os.remove(os.path.join(self.col.media.dir(), filename))
             except OSError as err:
-                logger.error("Error when removing file '%s' from media dir: "
-                             "%s" % (filename, str(err)))
+                logger.error(
+                    "Error when removing file '%s' from media dir: "
+                    "%s" % (filename, str(err))
+                )
 
     def downloadFiles(self, files):
         flist = {}
@@ -325,10 +342,12 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
         fname = csum = None
 
         if lastUsn < usn or lastUsn == 0:
-            for fname, mtime, csum, in self.col.media.db.execute("select fname,mtime,csum from media"):
+            for fname, mtime, csum in self.col.media.db.execute(
+                "select fname,mtime,csum from media"
+            ):
                 result.append([fname, usn, csum])
 
-        return {'data': result, 'err': ''}
+        return {"data": result, "err": ""}
 
     def mediaSanity(self, local=None):
         if self.col.media.mediaCount() == local:
@@ -336,7 +355,7 @@ class SyncMediaHandler(anki.sync.MediaSyncer):
         else:
             result = "FAILED"
 
-        return {'data': result, 'err': ''}
+        return {"data": result, "err": ""}
 
 
 class SyncUserSession:
@@ -360,16 +379,18 @@ class SyncUserSession:
         return anki.utils.checksum(str(random.random()))[:8]
 
     def get_collection_path(self):
-        return os.path.realpath(os.path.join(self.path, 'collection.anki2'))
+        return os.path.realpath(os.path.join(self.path, "collection.anki2"))
 
     def get_thread(self):
-        return self.collection_manager.get_collection(self.get_collection_path(), self.setup_new_collection)
+        return self.collection_manager.get_collection(
+            self.get_collection_path(), self.setup_new_collection
+        )
 
     def get_handler_for_operation(self, operation, col):
         if operation in SyncCollectionHandler.operations:
-            attr, handler_class = 'collection_handler', SyncCollectionHandler
+            attr, handler_class = "collection_handler", SyncCollectionHandler
         elif operation in SyncMediaHandler.operations:
-            attr, handler_class = 'media_handler', SyncMediaHandler
+            attr, handler_class = "media_handler", SyncMediaHandler
         else:
             raise Exception("no handler for {}".format(operation))
 
@@ -383,14 +404,18 @@ class SyncUserSession:
 
 
 class SyncApp:
-    valid_urls = SyncCollectionHandler.operations + SyncMediaHandler.operations + ['hostKey', 'upload', 'download']
+    valid_urls = (
+        SyncCollectionHandler.operations
+        + SyncMediaHandler.operations
+        + ["hostKey", "upload", "download"]
+    )
 
     def __init__(self, config):
         from ankisyncd.thread import get_collection_manager
 
-        self.data_root = os.path.abspath(config['data_root'])
-        self.base_url = config['base_url']
-        self.base_media_url = config['base_media_url']
+        self.data_root = os.path.abspath(config["data_root"])
+        self.base_url = config["base_url"]
+        self.base_media_url = config["base_media_url"]
         self.setup_new_collection = None
 
         self.prehooks = {}
@@ -402,12 +427,12 @@ class SyncApp:
         self.collection_manager = get_collection_manager(config)
 
         # make sure the base_url has a trailing slash
-        if not self.base_url.endswith('/'):
-            self.base_url += '/'
-        if not self.base_media_url.endswith('/'):
-            self.base_media_url += '/'
+        if not self.base_url.endswith("/"):
+            self.base_url += "/"
+        if not self.base_media_url.endswith("/"):
+            self.base_media_url += "/"
 
-        self.posthooks['meta'] = self.aww_postsync
+        self.posthooks["meta"] = self.aww_postsync
 
     def aww_postsync(self, collection, session):
         print("AWW POSTSYNC")
@@ -419,7 +444,7 @@ class SyncApp:
 
     @hook_pre_sync.setter
     def hook_pre_sync(self, value):
-        self.prehooks['start'] = value
+        self.prehooks["start"] = value
 
     @property
     def hook_post_sync(self):
@@ -427,7 +452,7 @@ class SyncApp:
 
     @hook_post_sync.setter
     def hook_post_sync(self, value):
-        self.posthooks['finish'] = value
+        self.posthooks["finish"] = value
 
     @property
     def hook_upload(self):
@@ -435,7 +460,7 @@ class SyncApp:
 
     @hook_upload.setter
     def hook_upload(self, value):
-        self.prehooks['upload'] = value
+        self.prehooks["upload"] = value
 
     @property
     def hook_download(self):
@@ -443,7 +468,7 @@ class SyncApp:
 
     @hook_download.setter
     def hook_download(self, value):
-        self.posthooks['download'] = value
+        self.posthooks["download"] = value
 
     def generateHostKey(self, username):
         """Generates a new host key to be used by the given username to identify their session.
@@ -455,11 +480,19 @@ class SyncApp:
         import string
 
         chars = string.ascii_letters + string.digits
-        val = ':'.join([username, str(int(time.time())), ''.join(random.choice(chars) for x in range(8))]).encode()
+        val = ":".join(
+            [
+                username,
+                str(int(time.time())),
+                "".join(random.choice(chars) for x in range(8)),
+            ]
+        ).encode()
         return hashlib.md5(val).hexdigest()
 
     def create_session(self, username, user_path):
-        return SyncUserSession(username, user_path, self.collection_manager, self.setup_new_collection)
+        return SyncUserSession(
+            username, user_path, self.collection_manager, self.setup_new_collection
+        )
 
     def _decode_data(self, data, compression=0):
         if compression:
@@ -469,7 +502,7 @@ class SyncApp:
         try:
             data = json.loads(data.decode())
         except (ValueError, UnicodeDecodeError):
-            data = {'data': data}
+            data = {"data": data}
 
         return data
 
@@ -486,7 +519,7 @@ class SyncApp:
         session = self.create_session(username, user_path)
         self.session_manager.save(hkey, session)
 
-        return {'key': hkey}
+        return {"key": hkey}
 
     def operation_upload(self, col, data, session):
         # Verify integrity of the received database file before replacing our
@@ -503,7 +536,7 @@ class SyncApp:
         # Get and verify the session
         print("Got request type: {}".format(request.method))
         try:
-            hkey = request.form['k']
+            hkey = request.form["k"]
         except KeyError:
             hkey = None
 
@@ -511,18 +544,18 @@ class SyncApp:
 
         if session is None:
             try:
-                skey = request.form['sk']
+                skey = request.form["sk"]
                 session = self.session_manager.load_from_skey(skey, self.create_session)
             except KeyError:
                 skey = None
 
         try:
-            compression = int(request.form['c'])
+            compression = int(request.form["c"])
         except KeyError:
             compression = 0
 
         try:
-            data = request.files['data'].read()
+            data = request.files["data"].read()
             data = self._decode_data(data, compression)
         except KeyError:
             data = {}
@@ -532,25 +565,25 @@ class SyncApp:
             if url not in self.valid_urls:
                 abort(404)
 
-            if url == 'hostKey':
+            if url == "hostKey":
                 result = self.operation_hostKey(data.get("u"), data.get("p"))
                 if result:
                     return json.dumps(result)
                 else:
-                    return '', 403
+                    return "", 403
 
             if session is None:
                 abort(403)
 
             if url in SyncCollectionHandler.operations + SyncMediaHandler.operations:
                 # 'meta' passes the SYNC_VER but it isn't used in the handler
-                if url == 'meta':
-                    if session.skey is None and 's' in request.form:
-                        session.skey = request.form['s']
-                    if 'v' in data:
-                        session.version = data['v']
-                    if 'cv' in data:
-                        session.client_version = data['cv']
+                if url == "meta":
+                    if session.skey is None and "s" in request.form:
+                        session.skey = request.form["s"]
+                    if "v" in data:
+                        session.version = data["v"]
+                    if "cv" in data:
+                        session.client_version = data["cv"]
 
                     self.session_manager.save(hkey, session)
                     session = self.session_manager.load(hkey, self.create_session)
@@ -571,16 +604,16 @@ class SyncApp:
 
                 return result
 
-            elif url == 'upload':
+            elif url == "upload":
                 thread = session.get_thread()
                 if url in self.prehooks:
                     thread.execute(self.prehooks[url], [session])
-                result = thread.execute(self.operation_upload, [data['data'], session])
+                result = thread.execute(self.operation_upload, [data["data"], session])
                 if url in self.posthooks:
                     thread.execute(self.posthooks[url], [session])
                 return result
 
-            elif url == 'download':
+            elif url == "download":
                 thread = session.get_thread()
                 if url in self.prehooks:
                     thread.execute(self.prehooks[url], [session])
@@ -603,7 +636,7 @@ class SyncApp:
                 abort(404)
 
             if url == "begin":
-                data['skey'] = session.skey
+                data["skey"] = session.skey
 
             result = self._execute_handler_method_in_thread(url, data, session)
 

@@ -32,7 +32,7 @@ def to_sql(database):
     else:
         connection = database
 
-    res = '\n'.join(connection.iterdump())
+    res = "\n".join(connection.iterdump())
 
     if type(database) == str:
         connection.close()

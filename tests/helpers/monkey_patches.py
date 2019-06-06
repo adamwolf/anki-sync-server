@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sqlite3 as sqlite
+
 from anki.media import MediaManager
 from anki.storage import DB
 
@@ -8,12 +9,10 @@ mediamanager_orig_funcs = {
     "findChanges": None,
     "mediaChangesZip": None,
     "addFilesFromZip": None,
-    "syncDelete": None
+    "syncDelete": None,
 }
 
-db_orig_funcs = {
-    "__init__": None
-}
+db_orig_funcs = {"__init__": None}
 
 
 def monkeypatch_mediamanager():
@@ -37,6 +36,7 @@ def monkeypatch_mediamanager():
 
             os.chdir(old_cwd)
             return res
+
         return wrapper
 
     MediaManager.findChanges = make_cwd_safe(MediaManager.findChanges)
@@ -70,9 +70,7 @@ def monkeypatch_db():
     def patched___init__(self, path, text=None, timeout=0):
         # Code taken from Anki's DB.__init__()
         # Allow more than one thread to use this connection.
-        self._db = sqlite.connect(path,
-                                  timeout=timeout,
-                                  check_same_thread=False)
+        self._db = sqlite.connect(path, timeout=timeout, check_same_thread=False)
         if text:
             self._db.text_factory = text
         self._path = path

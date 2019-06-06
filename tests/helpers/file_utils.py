@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from io import BytesIO
 import json
 import os
 import tempfile
 import unicodedata
 import zipfile
+from io import BytesIO
 
 from anki.consts import SYNC_ZIP_SIZE
 

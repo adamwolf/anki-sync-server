@@ -5,7 +5,9 @@ def create_app(syncapp=None):
     from ankisyncd.sync_app import SyncApp
     from flask import Flask
 
-    logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s]:%(levelname)s:%(name)s:%(message)s")
+    logging.basicConfig(
+        level=logging.DEBUG, format="[%(asctime)s]:%(levelname)s:%(name)s:%(message)s"
+    )
     import ankisyncd.config
 
     # if len(sys.argv) > 1: # backwards compat
@@ -20,6 +22,14 @@ def create_app(syncapp=None):
 
     app = Flask("ankisyncd")
 
-    app.add_url_rule('/', 'sync', defaults={'path': ''}, view_func=ankiserver, methods=["GET", "POST"])
-    app.add_url_rule('/<path:path>', 'sync', view_func=ankiserver, methods=["GET", "POST"])
+    app.add_url_rule(
+        "/",
+        "sync",
+        defaults={"path": ""},
+        view_func=ankiserver,
+        methods=["GET", "POST"],
+    )
+    app.add_url_rule(
+        "/<path:path>", "sync", view_func=ankiserver, methods=["GET", "POST"]
+    )
     return app

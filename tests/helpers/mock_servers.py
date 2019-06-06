@@ -2,7 +2,7 @@
 import logging
 import types
 
-from anki.sync import HttpSyncer, RemoteServer, RemoteMediaServer
+from anki.sync import HttpSyncer, RemoteMediaServer, RemoteServer
 
 
 class MockServerConnection:

@@ -1,10 +1,9 @@
-from ankisyncd.collection import CollectionManager, get_collection_wrapper
-
-from threading import Thread
-from queue import Queue
-
-import time
 import logging
+import time
+from queue import Queue
+from threading import Thread
+
+from ankisyncd.collection import CollectionManager, get_collection_wrapper
 
 
 def short_repr(obj, logger=logging.getLogger(), maxlen=80):
@@ -59,6 +58,7 @@ class ThreadingCollectionWrapper:
 
     def current(self):
         from threading import current_thread
+
         return current_thread() == self._thread
 
     def execute(self, func, args=[], kw={}, waitForReturn=True):
@@ -89,20 +89,31 @@ class ThreadingCollectionWrapper:
             while self._running:
                 func, args, kw, return_queue = self._queue.get(True)
 
-                if hasattr(func, '__name__'):
+                if hasattr(func, "__name__"):
                     func_name = func.__name__
                 else:
                     func_name = func.__class__.__name__
 
-                self.logger.info("Running %s(*%s, **%s)", func_name, short_repr(args, self.logger),
-                                 short_repr(kw, self.logger))
+                self.logger.info(
+                    "Running %s(*%s, **%s)",
+                    func_name,
+                    short_repr(args, self.logger),
+                    short_repr(kw, self.logger),
+                )
                 self.last_timestamp = time.time()
 
                 try:
                     ret = self.wrapper.execute(func, args, kw, return_queue)
                 except Exception as e:
-                    self.logger.error("Unable to %s(*%s, **%s): %s",
-                                      self.path, func_name, repr(args), repr(kw), e, exc_info=True)
+                    self.logger.error(
+                        "Unable to %s(*%s, **%s): %s",
+                        self.path,
+                        func_name,
+                        repr(args),
+                        repr(kw),
+                        e,
+                        exc_info=True,
+                    )
                     # we return the Exception which will be raise'd on the other end
                     ret = e
 
@@ -187,11 +198,15 @@ class ThreadingCollectionManager(CollectionManager):
         while True:
             cur = time.time()
             for path, thread in self.collections.items():
-                if thread.running \
-                        and thread.wrapper.opened() \
-                        and thread.qempty() \
-                        and cur - thread.last_timestamp >= self.monitor_inactivity:
-                    self.logger.info("Monitor is closing collection on inactive %s", thread)
+                if (
+                    thread.running
+                    and thread.wrapper.opened()
+                    and thread.qempty()
+                    and cur - thread.last_timestamp >= self.monitor_inactivity
+                ):
+                    self.logger.info(
+                        "Monitor is closing collection on inactive %s", thread
+                    )
                     thread.close()
             time.sleep(self.monitor_frequency)
 

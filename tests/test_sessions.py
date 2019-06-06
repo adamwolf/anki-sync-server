@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import os
-import tempfile
-import sqlite3
-import unittest
 import configparser
-
-from ankisyncd.sessions import SimpleSessionManager
-from ankisyncd.sessions import SqliteSessionManager
-from ankisyncd.sessions import get_session_manager
-
-from ankisyncd.sync_app import SyncUserSession
+import os
+import sqlite3
+import tempfile
+import unittest
 
 import helpers.server_utils
+
+from ankisyncd.sessions import (SimpleSessionManager, SqliteSessionManager,
+                                get_session_manager)
+from ankisyncd.sync_app import SyncUserSession
 
 
 class FakeSessionManager(SimpleSessionManager):
@@ -28,9 +26,7 @@ class SessionManagerFactoryTest(unittest.TestCase):
     def test_get_session_manager(self):
         # Get absolute path to development ini file.
         script_dir = os.path.dirname(os.path.realpath(__file__))
-        ini_file_path = os.path.join(script_dir,
-                                     "assets",
-                                     "test.conf")
+        ini_file_path = os.path.join(script_dir, "assets", "test.conf")
 
         # Create temporary files and dirs the server will use.
         server_paths = helpers.server_utils.create_server_paths()
@@ -39,32 +35,40 @@ class SessionManagerFactoryTest(unittest.TestCase):
         config.read(ini_file_path)
 
         # Use custom files and dirs in settings. Should be SqliteSessionManager
-        config['sync_app'].update(server_paths)
-        self.assertTrue(type(get_session_manager(config['sync_app']) == SqliteSessionManager))
+        config["sync_app"].update(server_paths)
+        self.assertTrue(
+            type(get_session_manager(config["sync_app"]) == SqliteSessionManager)
+        )
 
         # No value defaults to SimpleSessionManager
         config.remove_option("sync_app", "session_db_path")
-        self.assertTrue(type(get_session_manager(config['sync_app'])) == SimpleSessionManager)
+        self.assertTrue(
+            type(get_session_manager(config["sync_app"])) == SimpleSessionManager
+        )
 
         # A conf-specified SessionManager is loaded
-        config.set("sync_app", "session_manager", 'test_sessions.FakeSessionManager')
-        self.assertTrue(type(get_session_manager(config['sync_app'])) == FakeSessionManager)
+        config.set("sync_app", "session_manager", "test_sessions.FakeSessionManager")
+        self.assertTrue(
+            type(get_session_manager(config["sync_app"])) == FakeSessionManager
+        )
 
         # Should fail at load time if the class doesn't inherit from  SimpleSessionManager
-        config.set("sync_app", "session_manager", 'test_sessions.BadSessionManager')
+        config.set("sync_app", "session_manager", "test_sessions.BadSessionManager")
         with self.assertRaises(TypeError):
-            get_session_manager(config['sync_app'])
+            get_session_manager(config["sync_app"])
 
         # Add the session_db_path back, it should take precedence over BadSessionManager
-        config['sync_app'].update(server_paths)
-        self.assertTrue(type(get_session_manager(config['sync_app'])) == SqliteSessionManager)
+        config["sync_app"].update(server_paths)
+        self.assertTrue(
+            type(get_session_manager(config["sync_app"])) == SqliteSessionManager
+        )
 
 
 class SimpleSessionManagerTest(unittest.TestCase):
-    test_hkey = '1234567890'
+    test_hkey = "1234567890"
     sdir = tempfile.mkdtemp(suffix="_session")
     os.rmdir(sdir)
-    test_session = SyncUserSession('testName', sdir, None, None)
+    test_session = SyncUserSession("testName", sdir, None, None)
 
     def setUp(self):
         self.sessionManager = SimpleSessionManager()
@@ -74,10 +78,12 @@ class SimpleSessionManagerTest(unittest.TestCase):
 
     def test_save(self):
         self.sessionManager.save(self.test_hkey, self.test_session)
-        self.assertEqual(self.sessionManager.sessions[self.test_hkey].name,
-                         self.test_session.name)
-        self.assertEqual(self.sessionManager.sessions[self.test_hkey].path,
-                         self.test_session.path)
+        self.assertEqual(
+            self.sessionManager.sessions[self.test_hkey].name, self.test_session.name
+        )
+        self.assertEqual(
+            self.sessionManager.sessions[self.test_hkey].path, self.test_session.path
+        )
 
     def test_delete(self):
         self.sessionManager.save(self.test_hkey, self.test_session)
@@ -114,8 +120,9 @@ class SqliteSessionManagerTest(SimpleSessionManagerTest):
 
         conn = sqlite3.connect(self._test_sess_db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT username, path FROM session WHERE hkey=?",
-                       (self.test_hkey,))
+        cursor.execute(
+            "SELECT username, path FROM session WHERE hkey=?", (self.test_hkey,)
+        )
         res = cursor.fetchone()
         conn.close()
 

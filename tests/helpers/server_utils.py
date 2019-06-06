@@ -26,9 +26,9 @@ def create_sync_app(server_paths, config_path):
     config.read(config_path)
 
     # Use custom files and dirs in settings.
-    config['sync_app'].update(server_paths)
+    config["sync_app"].update(server_paths)
 
-    return SyncApp(config['sync_app'])
+    return SyncApp(config["sync_app"])
 
 
 def get_session_for_hkey(server, hkey):
@@ -58,22 +58,23 @@ def get_col_db_path_for_hkey(server, hkey):
     return col.db._path
 
 
-def get_syncer_for_hkey(server, hkey, syncer_type='collection'):
+def get_syncer_for_hkey(server, hkey, syncer_type="collection"):
     col = get_col_for_hkey(server, hkey)
 
     session = get_session_for_hkey(server, hkey)
 
     syncer_type = syncer_type.lower()
-    if syncer_type == 'collection':
+    if syncer_type == "collection":
         handler_method = SyncCollectionHandler.operations[0]
-    elif syncer_type == 'media':
+    elif syncer_type == "media":
         handler_method = SyncMediaHandler.operations[0]
 
     return session.get_handler_for_operation(handler_method, col)
 
 
-def add_files_to_mediasyncer(media_syncer, filepaths,
-                             update_db=False, bump_last_usn=False):
+def add_files_to_mediasyncer(
+    media_syncer, filepaths, update_db=False, bump_last_usn=False
+):
     """
     If bumpLastUsn is True, the media syncer's lastUsn will be incremented
     once for each added file. Use this when adding files to the server.
