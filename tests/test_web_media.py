@@ -10,8 +10,7 @@ import helpers.file_utils
 import helpers.server_utils
 from anki.sync import MediaSyncer
 from helpers.mock_servers import MockRemoteMediaServer
-from helpers.monkey_patches import (monkeypatch_mediamanager,
-                                    unpatch_mediamanager)
+from helpers.monkey_patches import monkeypatch_mediamanager, unpatch_mediamanager
 from sync_app_functional_test_base import SyncAppFunctionalTestBase
 
 

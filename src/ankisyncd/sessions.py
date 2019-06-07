@@ -61,7 +61,8 @@ class SqliteSessionManager(SimpleSessionManager):
         if new:
             cursor = conn.cursor()
             cursor.execute(
-                "CREATE TABLE session (hkey VARCHAR PRIMARY KEY, skey VARCHAR, username VARCHAR, path VARCHAR)"
+                "CREATE TABLE session (hkey VARCHAR PRIMARY KEY, "
+                "skey VARCHAR, username VARCHAR, path VARCHAR)"
             )
         return conn
 
@@ -114,7 +115,8 @@ class SqliteSessionManager(SimpleSessionManager):
         cursor = conn.cursor()
 
         cursor.execute(
-            "INSERT OR REPLACE INTO session (hkey, skey, username, path) VALUES (?, ?, ?, ?)",
+            "INSERT OR REPLACE INTO session "
+            "(hkey, skey, username, path) VALUES (?, ?, ?, ?)",
             (hkey, session.skey, session.name, session.path),
         )
 

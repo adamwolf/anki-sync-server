@@ -27,8 +27,7 @@ import zipfile
 import anki.db
 import anki.sync
 import anki.utils
-from anki.consts import (REM_CARD, REM_NOTE, SYNC_VER, SYNC_ZIP_COUNT,
-                         SYNC_ZIP_SIZE)
+from anki.consts import REM_CARD, REM_NOTE, SYNC_VER, SYNC_ZIP_COUNT, SYNC_ZIP_SIZE
 from flask import Response, abort, request
 
 from ankisyncd.full_sync import get_full_sync_manager
@@ -68,7 +67,8 @@ class SyncCollectionHandler(anki.sync.Syncer):
                 version = vs[0]
                 note[name] = int(vs[-1])
 
-        # convert the version string, ignoring non-numeric suffixes like in beta versions of Anki
+        # convert the version string,
+        # ignoring non-numeric suffixes like in beta versions of Anki
         version_nosuffix = re.sub(r"[^0-9.].*$", "", version)
         version_int = [int(x) for x in version_nosuffix.split(".")]
 
@@ -397,8 +397,9 @@ class SyncUserSession:
         if getattr(self, attr) is None:
             setattr(self, attr, handler_class(col))
         handler = getattr(self, attr)
-        # The col object may actually be new now! This happens when we close a collection
-        # for inactivity and then later re-open it (creating a new Collection object).
+        # The col object may actually be new now!
+        # This happens when we close a collection for inactivity and then later
+        # re-open it (creating a new Collection object).
         handler.col = col
         return handler
 
@@ -561,7 +562,7 @@ class SyncApp:
             data = {}
 
         if request.path.startswith(self.base_url):
-            url = request.path[len(self.base_url):]
+            url = request.path[len(self.base_url) :]
             if url not in self.valid_urls:
                 abort(404)
 
@@ -630,7 +631,7 @@ class SyncApp:
             if session is None:
                 abort(403)
 
-            url = request.path[len(self.base_media_url):]
+            url = request.path[len(self.base_media_url) :]
 
             if url not in self.valid_urls:
                 abort(404)

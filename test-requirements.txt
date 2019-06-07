@@ -1,4 +1,0 @@
-pytest
-webtest
-nose
-flask-webtest

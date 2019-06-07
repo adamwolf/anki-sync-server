@@ -1,0 +1,12 @@
+[run]
+branch = True
+source = ankisyncd
+
+[paths]
+source =
+   src/ankisyncd
+   .tox/*/lib/python*/site-packages/ankisyncd
+   .tox/pypy*/site-packages/ankisyncd
+
+[report]
+show_missing = True

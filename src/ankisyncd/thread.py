@@ -186,8 +186,8 @@ class ThreadingCollectionManager(CollectionManager):
         monitor.start()
         self._monitor_thread = monitor
 
-    # TODO: we should raise some error if a collection is started on a manager that has already been shutdown!
-    #       or maybe we could support being restarted?
+    # TODO: we should raise some error if a collection is started on a manager
+    #  that has already been shutdown! or maybe we could support being restarted?
 
     # TODO: it would be awesome to have a safe way to stop inactive threads completely!
     # TODO: we need a way to inform other code that the collection has been closed

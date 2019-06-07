@@ -31,39 +31,40 @@ Installation
    just remove pyaudio from anki-bundled/requirements.txt and run ``pip install -r anki-bundled/requirements.txt``.  If you are running an
    older version of Anki, see `Running ankisyncd without pyaudio`_.
 
-1. Install the dependencies:
+1. Install ankisyncd:
 
-        ``$ pip install -r requirements.txt``
+        ``$ pip install ankisyncd``
 
 2. Modify ankisyncd.conf according to your needs.
 
 3. Create user:
 
-        ``$ ./ankisyncctl.py adduser <username>``
+        ``$ ./bin/ankisyncctl.py adduser <username>``
 
 4. Run ankisyncd in development mode:
 
-       ``$ FLASK_APP="ankisyncd" flask run``
+        ``$ PYTHONPATH=$PYTHONPATH:./anki-bundled/ python -m ankisyncd``
 
 Developing
 ==========
 
 You can run all the tests and style checks by running ``tox``.
 
-If you want to develop, you'll probably want a virtualenv.  You can install ``requirements.txt``, ``test-requirements.txt``, and ``dev-requirements.txt``.
+If you want to develop, you'll probably want a virtualenv.   You can ``pip install -e .`` to install ankisyncd in an editable form into the virtualenv.
 
-We've set up pre-commit, which does some code formatting things before you commit.  You can set it up by running ``pre-commit run --all-files``.
-
-If you're using an IDE, you may need to add anki-bundled to your ``PYTHONPATH``. 
+If you're using an IDE, you may need to add anki-bundled to your ``PYTHONPATH``.
 In PyCharm, this can be done under Preferences, Interpreter, Configure, Show Paths, Add.
 
+Running the server through ``python -m ankisyncd`` doesn't work as well at live reloading as  ``$ FLASK_APP="ankisyncd" flask run``.  See the Flask docs for `details <http://flask.pocoo.org/docs/1.0/server/>`_.
 
 Usage
 =====
 
 Once ankisyncd has been installed, it can be run using the Flask development server with
 
-        ``$ FLASK_APP="ankisyncd" flask run``
+        ``$ PYTHONPATH=$PYTHONPATH:./anki-bundled/ python -m ankisyncd``
+
+If you installed anki to your system, add ``/usr/share/anki`` instead of ``./anki-bundled/``.
 
 There are `a lot of ways <http://flask.pocoo.org/docs/1.0/deploying/>`_ to deploy Flask in production.
 
@@ -107,8 +108,6 @@ I have done my best to document the history, but please let me know if I need to
 
 This version, so far, is primarily by Adam Wolf.  It moves from webob to Flask.  It adds a bunch of python tooling, like tox and adds continuous integration.
 
-
-
 Running `ankisyncd` without `pyaudio`
 -------------------------------------
 
@@ -128,7 +127,7 @@ Older versions
     do the same thing, you can pick whichever one you're most comfortable with.
 
     Manual version:
-           
+
         remove every line after "# Packaged commands" in anki/sound.py, and remove every line starting with "pyaudio" in requirements.txt
 
     ``ed`` version:

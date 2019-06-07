@@ -8,8 +8,11 @@ import unittest
 
 import helpers.server_utils
 
-from ankisyncd.sessions import (SimpleSessionManager, SqliteSessionManager,
-                                get_session_manager)
+from ankisyncd.sessions import (
+    SimpleSessionManager,
+    SqliteSessionManager,
+    get_session_manager,
+)
 from ankisyncd.sync_app import SyncUserSession
 
 
@@ -52,12 +55,14 @@ class SessionManagerFactoryTest(unittest.TestCase):
             type(get_session_manager(config["sync_app"])) == FakeSessionManager
         )
 
-        # Should fail at load time if the class doesn't inherit from  SimpleSessionManager
+        # Should fail at load time if the class
+        # doesn't inherit from  SimpleSessionManager
         config.set("sync_app", "session_manager", "test_sessions.BadSessionManager")
         with self.assertRaises(TypeError):
             get_session_manager(config["sync_app"])
 
-        # Add the session_db_path back, it should take precedence over BadSessionManager
+        # Add the session_db_path back, it should take
+        # precedence over BadSessionManager
         config["sync_app"].update(server_paths)
         self.assertTrue(
             type(get_session_manager(config["sync_app"])) == SqliteSessionManager

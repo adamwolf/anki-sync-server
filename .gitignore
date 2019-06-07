@@ -1,6 +1,9 @@
 *.pyc
 *.db
+*.egg-info/
+.coverage
 
 /collections
 /venv
 /.tox
+pip-wheel-metadata/

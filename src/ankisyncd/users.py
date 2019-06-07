@@ -154,7 +154,9 @@ class SqliteUserManager(SimpleUserManager):
         logger.info("Changed password for user {}".format(username))
 
     def authenticate(self, username, password):
-        """Returns True if this username is allowed to connect with this password. False otherwise."""
+        """Returns True if this username is allowed to connect with this password.
+
+        False otherwise."""
 
         conn = self._conn()
         cursor = conn.cursor()
@@ -235,6 +237,7 @@ def get_user_manager(config):
         return class_(config)
     else:
         logger.warning(
-            "neither auth_db_path nor user_manager set, ankisyncd will accept any password"
+            "neither auth_db_path nor user_manager set."
+            " ankisyncd will accept any password."
         )
         return SimpleUserManager()

@@ -7,8 +7,7 @@ import unittest
 
 import helpers.server_utils
 
-from ankisyncd.users import (SimpleUserManager, SqliteUserManager,
-                             get_user_manager)
+from ankisyncd.users import SimpleUserManager, SqliteUserManager, get_user_manager
 
 
 class FakeUserManager(SimpleUserManager):

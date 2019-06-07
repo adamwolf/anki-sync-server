@@ -24,6 +24,9 @@ repos:
     hooks:
       - id: isort
         language_version: python3.7
+        args: [--skip=anki-bundled,]
+        # args: [--skip=anki-bundled, --diff]
+        # verbose: True
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.2.3
