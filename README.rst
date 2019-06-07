@@ -2,7 +2,7 @@
 ``ankisyncd``
 =============
 
-.. image:: https://circleci.com/gh/adamwolf/anki-sync-server.svg?style=svg
+.. image:: https://img.shields.io/circleci/build/gh/adamwolf/anki-sync-server.svg
     :target: https://circleci.com/gh/adamwolf/anki-sync-server
     :alt: CI status including tests and code style
 
