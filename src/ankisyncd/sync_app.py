@@ -433,11 +433,6 @@ class SyncApp:
         if not self.base_media_url.endswith("/"):
             self.base_media_url += "/"
 
-        self.posthooks["meta"] = self.aww_postsync
-
-    def aww_postsync(self, collection, session):
-        print("AWW POSTSYNC")
-
     # backwards compat
     @property
     def hook_pre_sync(self):
@@ -535,7 +530,6 @@ class SyncApp:
 
     def __call__(self, *args, **kwargs):
         # Get and verify the session
-        print("Got request type: {}".format(request.method))
         try:
             hkey = request.form["k"]
         except KeyError:
