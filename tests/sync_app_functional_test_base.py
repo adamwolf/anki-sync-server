@@ -2,13 +2,15 @@
 import os
 import unittest
 
-import helpers.server_utils
-from helpers.collection_utils import CollectionUtils
-from helpers.mock_servers import MockRemoteServer
-from helpers.monkey_patches import monkeypatch_db, unpatch_db
+from tests import helpers
+from tests.helpers import server_utils
+from tests.helpers.collection_utils import CollectionUtils
+from tests.helpers.mock_servers import MockRemoteServer
+from tests.helpers.monkey_patches import monkeypatch_db, unpatch_db
 from webtest import TestApp
 
 from ankisyncd.app import create_app
+from ankisyncd.sync_app import SyncApp
 from ankisyncd.users import SqliteUserManager
 
 
@@ -26,7 +28,7 @@ class SyncAppFunctionalTestBase(unittest.TestCase):
         monkeypatch_db()
 
         # Create temporary files and dirs the server will use.
-        self.server_paths = helpers.server_utils.create_server_paths()
+        self.server_paths = server_utils.create_server_paths()
 
         # Add a test user to the temp auth db the server will use.
         self.user_manager = SqliteUserManager(
@@ -40,11 +42,13 @@ class SyncAppFunctionalTestBase(unittest.TestCase):
 
         # Create SyncApp instance using the dev ini file and the temporary
         # paths.
-        self.sync_app = helpers.server_utils.create_sync_app(
+        self.config = helpers.server_utils.create_config(
             self.server_paths, ini_file_path
         )
+        self.sync_app = SyncApp(self.config["sync_app"])
 
-        self.flask_app = create_app(self.sync_app)
+        self.flask_app = create_app(sync_app=self.sync_app, config=self.config)
+        self.flask_app.config["TESTING"] = True
 
         # Wrap the SyncApp object in TestApp instance for testing.
         self.server_test_app = TestApp(self.flask_app)

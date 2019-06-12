@@ -5,13 +5,12 @@ import shutil
 import sqlite3
 import tempfile
 
-import helpers.db_utils
-import helpers.file_utils
-import helpers.server_utils
 from anki.sync import MediaSyncer
-from helpers.mock_servers import MockRemoteMediaServer
-from helpers.monkey_patches import monkeypatch_mediamanager, unpatch_mediamanager
-from sync_app_functional_test_base import SyncAppFunctionalTestBase
+from tests import helpers
+from tests.helpers import db_utils, file_utils
+from tests.helpers.mock_servers import MockRemoteMediaServer
+from tests.helpers.monkey_patches import monkeypatch_mediamanager, unpatch_mediamanager
+from tests.sync_app_functional_test_base import SyncAppFunctionalTestBase
 
 
 class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
@@ -84,7 +83,7 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
                 connection.commit()
                 connection.close()
 
-        return helpers.db_utils.diff(left_db_path, right_db_path)
+        return db_utils.diff(left_db_path, right_db_path)
 
     def test_sync_empty_media_dbs(self):
         # With both the client and the server having no media to sync,
@@ -103,7 +102,7 @@ class SyncAppFunctionalMediaTest(SyncAppFunctionalTestBase):
         )
 
         # Create a test file.
-        temp_file_path = helpers.file_utils.create_named_file("foo.jpg", "hello")
+        temp_file_path = file_utils.create_named_file("foo.jpg", "hello")
 
         # Add the test file to the server's collection.
         helpers.server_utils.add_files_to_mediasyncer(

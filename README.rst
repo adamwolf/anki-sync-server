@@ -14,7 +14,7 @@ Linux, is open source. The Android version, AnkiDroid, is also open source.  Ank
 Installation
 ============
 
-0. Install Anki. The currently supported version range is 2.1.1〜2.1.11, with the
+0. Install Anki. The currently supported version range is 2.1.1, with the
    exception of 2.1.9. (Keep in mind this range only applies to the Anki used by
    the server, clients can be as old as 2.0.27 and still work.) Running the server
    with other versions might work as long as they're not 2.0.x, but things might
@@ -161,3 +161,9 @@ sqlite3 is used by default for user data, authentication and session persistence
 persistence requirements (the media DB and files are being worked on). All that is
 required is to extend one of the existing manager classes and then reference those
 classes in the config file. See ankisyncd.conf for the example config.
+
+API
+===
+A deck's numbers in the API results include their subdecks. This is to best match
+Anki. If you need the data for decks *without* including their subdecks, please
+file an issue.  Please include what you're trying to do.

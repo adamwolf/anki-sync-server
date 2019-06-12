@@ -2,7 +2,7 @@
 import unittest
 
 from anki.consts import SYNC_VER
-from collection_test_base import CollectionTestBase
+from tests.collection_test_base import CollectionTestBase
 
 from ankisyncd.sync_app import SyncCollectionHandler
 

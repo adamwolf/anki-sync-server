@@ -6,7 +6,7 @@ import sqlite3
 import tempfile
 import unittest
 
-import helpers.server_utils
+from tests import helpers
 
 from ankisyncd.sessions import (
     SimpleSessionManager,
@@ -50,14 +50,18 @@ class SessionManagerFactoryTest(unittest.TestCase):
         )
 
         # A conf-specified SessionManager is loaded
-        config.set("sync_app", "session_manager", "test_sessions.FakeSessionManager")
+        config.set(
+            "sync_app", "session_manager", "tests.test_sessions.FakeSessionManager"
+        )
         self.assertTrue(
             type(get_session_manager(config["sync_app"])) == FakeSessionManager
         )
 
         # Should fail at load time if the class
         # doesn't inherit from  SimpleSessionManager
-        config.set("sync_app", "session_manager", "test_sessions.BadSessionManager")
+        config.set(
+            "sync_app", "session_manager", "tests.test_sessions.BadSessionManager"
+        )
         with self.assertRaises(TypeError):
             get_session_manager(config["sync_app"])
 

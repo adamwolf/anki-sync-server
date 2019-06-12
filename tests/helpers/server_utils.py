@@ -4,7 +4,7 @@ import logging
 import os
 import tempfile
 
-from ankisyncd.sync_app import SyncApp, SyncCollectionHandler, SyncMediaHandler
+from ankisyncd.sync_app import SyncCollectionHandler, SyncMediaHandler
 
 
 def create_server_paths():
@@ -21,14 +21,14 @@ def create_server_paths():
     }
 
 
-def create_sync_app(server_paths, config_path):
+def create_config(server_paths, config_path):
     config = configparser.ConfigParser()
     config.read(config_path)
 
     # Use custom files and dirs in settings.
     config["sync_app"].update(server_paths)
 
-    return SyncApp(config["sync_app"])
+    return config
 
 
 def get_session_for_hkey(server, hkey):

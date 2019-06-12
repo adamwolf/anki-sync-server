@@ -4,7 +4,7 @@ import configparser
 import os
 import unittest
 
-import helpers.server_utils
+from tests import helpers
 
 from ankisyncd.full_sync import FullSyncManager, get_full_sync_manager
 
@@ -38,13 +38,15 @@ class FullSyncManagerFactoryTest(unittest.TestCase):
 
         # A conf-specified FullSyncManager is loaded
         config.set(
-            "sync_app", "full_sync_manager", "test_full_sync.FakeFullSyncManager"
+            "sync_app", "full_sync_manager", "tests.test_full_sync.FakeFullSyncManager"
         )
         self.assertTrue(
             type(get_full_sync_manager(config["sync_app"])) == FakeFullSyncManager
         )
 
         # Should fail at load time if the class doesn't inherit from FullSyncManager
-        config.set("sync_app", "full_sync_manager", "test_full_sync.BadFullSyncManager")
+        config.set(
+            "sync_app", "full_sync_manager", "tests.test_full_sync.BadFullSyncManager"
+        )
         with self.assertRaises(TypeError):
             get_full_sync_manager(config["sync_app"])

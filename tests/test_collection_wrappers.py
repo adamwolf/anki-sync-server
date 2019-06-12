@@ -4,7 +4,7 @@ import configparser
 import os
 import unittest
 
-import helpers.server_utils
+from tests import helpers
 
 from ankisyncd.collection import CollectionWrapper, get_collection_wrapper
 
@@ -41,7 +41,7 @@ class CollectionWrapperFactoryTest(unittest.TestCase):
         config.set(
             "sync_app",
             "collection_wrapper",
-            "test_collection_wrappers.FakeCollectionWrapper",
+            "tests.test_collection_wrappers.FakeCollectionWrapper",
         )
         self.assertTrue(
             type(get_collection_wrapper(config["sync_app"], path))
@@ -52,7 +52,7 @@ class CollectionWrapperFactoryTest(unittest.TestCase):
         config.set(
             "sync_app",
             "collection_wrapper",
-            "test_collection_wrappers.BadCollectionWrapper",
+            "tests.test_collection_wrappers.BadCollectionWrapper",
         )
         with self.assertRaises(TypeError):
             get_collection_wrapper(config["sync_app"], path)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from sync_app_functional_test_base import SyncAppFunctionalTestBase
+from tests.sync_app_functional_test_base import SyncAppFunctionalTestBase
 
 
 class SyncAppFunctionalHostKeyTest(SyncAppFunctionalTestBase):

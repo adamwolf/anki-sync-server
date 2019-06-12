@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import unittest
 
-import helpers.server_utils
+from tests.helpers import server_utils
 
 from ankisyncd.users import SimpleUserManager, SqliteUserManager, get_user_manager
 
@@ -26,7 +26,7 @@ class UserManagerFactoryTest(unittest.TestCase):
         ini_file_path = os.path.join(script_dir, "assets", "test.conf")
 
         # Create temporary files and dirs the server will use.
-        server_paths = helpers.server_utils.create_server_paths()
+        server_paths = server_utils.create_server_paths()
 
         config = configparser.ConfigParser()
         config.read(ini_file_path)
@@ -40,11 +40,11 @@ class UserManagerFactoryTest(unittest.TestCase):
         self.assertTrue(type(get_user_manager(config["sync_app"])) == SimpleUserManager)
 
         # A conf-specified UserManager is loaded
-        config.set("sync_app", "user_manager", "test_users.FakeUserManager")
+        config.set("sync_app", "user_manager", "tests.test_users.FakeUserManager")
         self.assertTrue(type(get_user_manager(config["sync_app"])) == FakeUserManager)
 
-        # Should fail at load time if the class doesn't inherit from  SimpleUserManager
-        config.set("sync_app", "user_manager", "test_users.BadUserManager")
+        # Should fail at load time if the class doesn't inherit from SimpleUserManager
+        config.set("sync_app", "user_manager", "tests.test_users.BadUserManager")
         with self.assertRaises(TypeError):
             get_user_manager(config["sync_app"])
 

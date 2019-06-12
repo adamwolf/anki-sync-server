@@ -1,0 +1,28 @@
+<!doctype html>
+<title>{% block title %}{% endblock %}</title>
+<body>
+<h1>Anki Overview for {{ username }}</h1>
+<table>
+  <tr>
+      <th>deck_name</th>
+    {% for key, value in data['all']|dictsort(by='key')  %}
+      <th>{{ key }}</th>
+    {% endfor %}
+  </tr>
+  <tr>
+    <td>All</td>
+    {% for key, value in data['all']|dictsort(by='key') %}
+    <td>{{ value }}</td>
+    {% endfor %}
+  </tr>
+
+  {% for deck_name, deck_data in data['by_deck']|dictsort(by='key') %}
+  <tr>
+    <td>{{ deck_name }}</td>
+    {% for key, value in deck_data|dictsort(by='key') %}
+    <td>{{ value }}</td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+</body>
