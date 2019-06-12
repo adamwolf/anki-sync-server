@@ -19,7 +19,7 @@ PROJECT_URLS = {
     "Source Code": "https://github.com/adamwolf/anki-sync-server",
 }
 
-REQUIRED = ["flask", "Flask-HTTPAuth"]
+REQUIRED = ["flask>=1.0.2", "Flask-HTTPAuth"]
 EXTRAS_REQUIRE = {"tests": ["pytest", "webtest", "flask-webtest", "coverage"]}
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + ["pre-commit"]
 
