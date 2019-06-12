@@ -21,6 +21,7 @@ def create_app(syncapp=None):
         ankiserver = syncapp
 
     app = Flask("ankisyncd")
+    app.logger.setLevel(logging.DEBUG)
 
     app.add_url_rule(
         "/",
