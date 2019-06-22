@@ -71,7 +71,7 @@ There are `a lot of ways <http://flask.pocoo.org/docs/1.0/deploying/>`_ to deplo
 Setting up the Anki client
 --------------------------
 
-On Anki Desktop, use the `SyncRedirector <https://ankiweb.net/shared/info/2124817646>_` plugin .
+On Anki Desktop, use the `SyncRedirector <https://ankiweb.net/shared/info/2124817646>`_ plugin .
 
 On AnkiDroid, go into Settings, Advanced, Custom Sync Server.  Don't use trailing slashes.  When AnkiDroid asks for an email address, you can use the username you set up in ``ankisyncd`` even if it does not look like an email address.
 
@@ -102,9 +102,9 @@ History
 
 I have done my best to document the history, but please let me know if I need to make adjustments!
 
-```ankisyncd``` was written by `dsnopek <https://github.com/dsnopek>_` `here <https://github.com/dsnopek/anki-sync-server>_`.
+```ankisyncd``` was written by `dsnopek <https://github.com/dsnopek/anki-sync-server>`_.
 
-`jdoe3 <https://github.com/jdoe0/ankisyncd>_` removed the REST API to remove some dependencies, and then `tsudoko <https://github.com/tsudoko/anki-sync-server>_` added support for Python 3 and Anki 2.1.
+`jdoe3 <https://github.com/jdoe0/ankisyncd>`_ removed the REST API to remove some dependencies, and then `tsudoko <https://github.com/tsudoko/anki-sync-server>`_ added support for Python 3 and Anki 2.1.
 
 This version, so far, is primarily by Adam Wolf.  It moves from webob to Flask.  It adds a bunch of python tooling, like tox and adds continuous integration.
 
